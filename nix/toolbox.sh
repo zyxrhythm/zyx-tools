@@ -180,7 +180,7 @@ z     = special domain check tool -
 
 perm  = show the file permissions on 'octal number' format
 	simply type perm and hit enter 
-	or add '-h' or '-x' as parameter then specify the directory
+	or add '-h' or '-x' as parameter
         
 d     = is a shortcut/alias for the 'dig' command
         (Use it as you use the actual dig command)
@@ -196,6 +196,7 @@ p     = is a shortcut/alias for the  'ping' command
  
 c     = ultimate clear screen
  
+more info at https://github.com/zyxrhythm/zyx-kit
 ======================================================================
 "
 ###############
