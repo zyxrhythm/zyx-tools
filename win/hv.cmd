@@ -13,7 +13,7 @@ ECHO 1 = 'hypervisorlaunchtype ON' and reboot.&echo.&echo.    Enables hyper-v  a
  
 ECHO 2 = 'hypervisorlaunchtype OFF' and reboot.&echo.&echo.    Disables hyper-v  and reboots the computer&echo.    Allowing VMware and VirtualBox to run.&echo.
 
-ECHO      hyper-v on and off ref: https://docs.microsoft.com/en-us/archive/blogs/gmarchetti/turning-hyper-v-on-and-off&echo.
+ECHO "     hyper-v on and off ref: https://docs.microsoft.com/en-us/archive/blogs/gmarchetti/turning-hyper-v-on-and-off&echo."
 
 ECHO 0 = Exit&echo.
 
