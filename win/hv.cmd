@@ -9,7 +9,7 @@ FOR /F "tokens=* USEBACKQ" %%F IN (`"bcdedit /enum | findstr hypervisorlaunchtyp
 REM new line in batch: https://stackoverflow.com/questions/132799/how-can-i-echo-a-newline-in-a-batch-file
 ECHO.&echo Status: %hvstat%&echo.&echo.Options:&echo.
 
-ECHO 1 = 'hypervisorlaunchtype ON' and reboot.&echo.&echo.    Enables hyper-v  and reboots the computer&echo.    Preventing VMware and VirtualBox to run.&echo.
+ECHO 1 = 'hypervisorlaunchtype AUTO' and reboot.&echo.&echo.    Enables hyper-v  and reboots the computer&echo.    Preventing VMware and VirtualBox to run.&echo.
  
 ECHO 2 = 'hypervisorlaunchtype OFF' and reboot.&echo.&echo.    Disables hyper-v  and reboots the computer&echo.    Allowing VMware and VirtualBox to run.&echo.
 
@@ -20,7 +20,7 @@ ECHO 0 = Exit&echo.
 SET /p option=What would you like to do? 
 
 REM NOTE: the script will reboot the computer within 3 seconds
-IF %option%==1 bcdedit /set hypervisorlaunchtype on & shutdown /r /t 3
+IF %option%==1 bcdedit /set hypervisorlaunchtype auto & shutdown /r /t 3
 IF %option%==2 bcdedit /set hypervisorlaunchtype off & shutdown /r /t 3
 IF %option%==0 exit
 
