@@ -25,7 +25,7 @@ p2chk=$( if [ -d $2 ]; then echo dir; elif [ ! -d $2 ] && [ -e $2 ]; then echo f
 ##just 'perm' : will dispaly permission on octal format and file name/s on the current working directory 
 #but will not display hidden contents with '.' at the beginning of their file names
 if [ -z $1 ]; then
-stat -c "%a %n" * 
+stat -c "%a %n" ./* 
 
 # 'perm -h' will display even hidden files
 elif [ $1 = '-h' ]; then 
