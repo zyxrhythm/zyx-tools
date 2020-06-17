@@ -17,6 +17,18 @@ elif [ -e $1/prm ] && [ $2 = 'u' ]; then
 (wget -N https://raw.githubusercontent.com/zyxrhythm/zyx-tools/master/nix/prm.sh -O $1/prm; chmod +x $1/prm)
 fi
 
+#deploys fprm.sh script from the tool shed
+if [ ! -e $1/fprm ] && [[ $2 = 'd' || $2 = 'k' ]]; then
+(wget -N https://raw.githubusercontent.com/zyxrhythm/zyx-tools/master/nix/fprm.sh -O $1/fprm; chmod +x $1/fprm)
+	if [ $? -eq 0 ]; then
+	echo -e "\n'fprm' created.\n"
+	else 
+	echo -e "\n'fprm' creation failed.\n"
+	fi
+elif [ -e $1/fprm ] && [ $2 = 'u' ]; then
+(wget -N https://raw.githubusercontent.com/zyxrhythm/zyx-tools/master/nix/fprm.sh -O $1/fprm; chmod +x $1/fprm)
+fi
+
 #deploys zyxw-dip.sh from the tool shed
 if [ ! -e $1/z ] && [[ $2 = 'd' || $2 = 'k' ]]; then
 (wget https://raw.githubusercontent.com/zyxrhythm/zyx-tools/master/nix/zyxw-dip.sh -O $1/z; chmod +x $1/z)
@@ -177,10 +189,14 @@ z     = special domain check tool -
         
         for full check type:
         z thedomain.tld -f
+	
+	type 'z help' for more info.
 
-prm  = show the file permissions on 'octal number' format
-	simply type prm and hit enter 
-	or add '-h' or '-x' as parameter
+prm  = show the file permissions on 'octal number' format.
+	type 'fprm help' for more info.
+
+fprm  = fixes file permission of folders and files
+	type 'fprm help' for more info.
         
 d     = is a shortcut/alias for the 'dig' command
         (Use it as you use the actual dig command)
