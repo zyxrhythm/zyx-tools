@@ -5,7 +5,7 @@
 #$2 = file permission (if blank, default value: 644, use x to to prevent the script from changing file permissions)
 #$3 = recursive switch ( if 'r' is added as 3rd parameter the script will do a recursive file perm fix on the current dir, but if a valid is used as 3rd parameter, the script will update permissions on that directory, if left blank the script will do a non-recursive file and dir perm fix on the current dir)
 
-if [ $1 = 'help' ]; then
+if [[ $1 = 'help' ]]; then
 clear
 echo "
 
