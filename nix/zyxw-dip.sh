@@ -3,6 +3,22 @@
 #And it can be downloaded at https://github.com/zyxrhythm/zyx-tools/
 #############################################
 
+if [ $1 = 'help' ]; then
+echo "
+
+This is a special domain check tool, the tool is basically the command line version of the 'dip.zyx' script from my other repo https://github.com/zyxrhythm/zyxw.
+
+        To perform a simple domain check, the syntax is as follows:
+
+        z github.com
+
+        For full domain check:
+
+        z github.com -f
+	
+"
+else
+
 clear && echo -en "\e[3J"
 
 whoisprogtest=$(if [[ -e /usr/bin/whois ]] && [[ ! -d /usr/bin/whois ]] && [[ ! -e /usr/bin/jwhois ]]; then echo 'whois'; else echo 'jwhois'; fi )
@@ -945,3 +961,5 @@ valid='0-9a-z'
 
 fi
 exit 0
+
+fi
