@@ -1,7 +1,7 @@
 #!/bin/bash
 #permission checker (octal / 'number' format ) for files and dir
 
-if [ $1 = 'help' ]; then
+if [[ $1 = 'help' ]]; then
 echo "
 
 This script is basically orbiting the 'stat' command. The script shows files and folders permission on 'octal number' format.
