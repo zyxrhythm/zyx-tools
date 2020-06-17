@@ -1,6 +1,23 @@
 #!/bin/bash
 #permission checker (octal / 'number' format ) for files and dir
 
+if [ $1 = 'help' ]; then
+echo "
+
+the 'prm' command This command is basically a script orbiting the command " stat -c "%x %x" ". The command shows files and folders permission on 'octal number' format.
+
+You can use it by simply typing 'prm' followed by the path to the file/directory. Typing 'prm -h' adds hidden files/folders that starts with '.' on the results. And 'prm -x' shall include the owner of the file/folder in the result. If you do not include a path to file/folder the command will be executed on your current working directory.
+
+    sample syntax is as follows:
+
+    prm /path/to/dirorfile
+    prm -h /path/to/dir
+    prm -x /path/to/dirorfile
+
+"
+
+else
+
 #checks if input is a directory / file/ something else
 p1chk=$( if [ -d $1 ]; then echo dir; elif [ ! -d $1 ] && [ -e $1 ]; then echo file; else echo unknown; fi )
 p2chk=$( if [ -d $2 ]; then echo dir; elif [ ! -d $2 ] && [ -e $2 ]; then echo file; else echo unknown; fi )
@@ -78,5 +95,9 @@ elif [ $p1chk = 'file' ] && [ -z $2 ]; then
 stat -c "%a %n" $1
 
 else echo "Invalid Parameter!"
+
+fi
+
+exit 0
 
 fi
