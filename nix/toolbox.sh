@@ -5,16 +5,16 @@
 deploybox () {
 #The following will deploy the scripts from https://github.com/zyxrhythm/zyx-tools and some extras to the PATH and make them executable
 
-#deploys perm.sh script from the tool shed
-if [ ! -e $1/perm ] && [[ $2 = 'd' || $2 = 'k' ]]; then
-(wget -N https://raw.githubusercontent.com/zyxrhythm/zyx-tools/master/nix/perm.sh -O $1/perm; chmod +x $1/perm)
+#deploys prm.sh script from the tool shed
+if [ ! -e $1/prm ] && [[ $2 = 'd' || $2 = 'k' ]]; then
+(wget -N https://raw.githubusercontent.com/zyxrhythm/zyx-tools/master/nix/prm.sh -O $1/prm; chmod +x $1/prm)
 	if [ $? -eq 0 ]; then
-	echo -e "\n'perm' created.\n"
+	echo -e "\n'prm' created.\n"
 	else 
-	echo -e "\n'perm' creation failed.\n"
+	echo -e "\n'prm' creation failed.\n"
 	fi
-elif [ -e $1/perm ] && [ $2 = 'u' ]; then
-(wget -N https://raw.githubusercontent.com/zyxrhythm/zyx-tools/master/nix/perm.sh -O $1/perm; chmod +x $1/perm)
+elif [ -e $1/prm ] && [ $2 = 'u' ]; then
+(wget -N https://raw.githubusercontent.com/zyxrhythm/zyx-tools/master/nix/prm.sh -O $1/prm; chmod +x $1/prm)
 fi
 
 #deploys zyxw-dip.sh from the tool shed
@@ -178,8 +178,8 @@ z     = special domain check tool -
         for full check type:
         z thedomain.tld -f
 
-perm  = show the file permissions on 'octal number' format
-	simply type perm and hit enter 
+prm  = show the file permissions on 'octal number' format
+	simply type prm and hit enter 
 	or add '-h' or '-x' as parameter
         
 d     = is a shortcut/alias for the 'dig' command
