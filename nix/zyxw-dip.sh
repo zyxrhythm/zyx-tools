@@ -6,13 +6,14 @@
 if [ $1 = 'help' ]; then
 echo "
 
-This is a special domain check tool, the tool is basically the command line version of the 'dip.zyx' script from my other repo https://github.com/zyxrhythm/zyxw.
+This is a special domain check tool, the script is basically the command line version of the 'dip.zyx' script 
+from  https://github.com/zyxrhythm/zyxw.
 
-        To perform a simple domain check, the syntax is as follows:
+        -> To perform a simple domain check, the syntax is as follows:
 
         z github.com
 
-        For full domain check:
+        -> For full domain check:
 
         z github.com -f
 	
