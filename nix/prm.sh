@@ -4,9 +4,9 @@
 if [ $1 = 'help' ]; then
 echo "
 
-the 'prm' command This command is basically a script orbiting the command " stat -c "%x %x" ". The command shows files and folders permission on 'octal number' format.
+This script is basically orbiting the 'stat' command. The script shows files and folders permission on 'octal number' format.
 
-You can use it by simply typing 'prm' followed by the path to the file/directory. Typing 'prm -h' adds hidden files/folders that starts with '.' on the results. And 'prm -x' shall include the owner of the file/folder in the result. If you do not include a path to file/folder the command will be executed on your current working directory.
+You can use it by simply typing 'prm' followed by the path to the file/directory. Typing 'prm -h' adds hidden files/folders that starts with '.' on the results. And 'prm -x' shall include the owner of the file/folder in the result. If you do not include a path to file/folder the script will be executed on your current working directory.
 
     sample syntax is as follows:
 
