@@ -2,9 +2,8 @@
 #deployment script for the scritps at https://github.com/zyxrhythm/zyx-tools and some custom commands
 #ROT13: Uvqqra_Yrns = Hidden_Leaf
 
+#The following function will deploy the scripts from https://github.com/zyxrhythm/zyx-tools and some extras to the $PATH and make them executable
 deploybox () {
-#The following will deploy the scripts from https://github.com/zyxrhythm/zyx-tools and some extras to the PATH and make them executable
-
 #deploys prm.sh script from the tool shed
 if [ ! -e $1/prm ] && [[ $2 = 'd' || $2 = 'k' ]]; then
 (wget -N https://raw.githubusercontent.com/zyxrhythm/zyx-tools/master/nix/prm.sh -O $1/prm; chmod +x $1/prm)
@@ -124,37 +123,57 @@ ln -s $(which ping) $1/p
 fi
 }
 
-#BASH CHECK
+#BASH CHECK: checks if the shell is bash, if not terminate the script
 if [ -z $( echo $SHELL | grep 'bash' ) ]; then 
 echo 'The Default shell is not bash!'
 exit 1
 fi
 
-###############
+#A input is expected in order for the scipt to continue if $1 is null the scipt will terminate.
 if [ -z $1 ]; then
 echo " Nothing to do."
 exit 1
-###############
-#elif [ $1 = 'debug' ]; then 
-#echo "$zyxpath"
-#echo $PATH
-#exit 0
-###############
-elif [ $1 = 'deploy' ]; then 
 
+#this is added for cPanel adminstration
+elif [ $1 = 'deploy' ] && [ $2 = cpx ]; then 
+#this following will check if cPanel is instaleld on the host, will verify if cPanels /script folder is included in the user's $PATH
+if [[ -z $(/usr/local/cpanel/cpanel -V 2>/dev/null) ]]; then
+cpinstalled=n
+else
+cpinstalled=y
+fi
+
+if [ $cp = y ];then
+  #check if the cpanel scripts directory is included in $PATH, if not this will add it for the current terminal session
+  if [[ -z $(echo $PATH | grep "/usr/local/cpanel/scripts") ]]; then 
+  export PATH=$PATH:/usr/local/cpanel/scripts
+  fi
+fi
+#this is added for cPanel adminstration
+
+
+#else if $1 for the script is 'deploy'
+elif [ $1 = 'deploy' ] && [ -z $2 ]; then 
+	#checks if the current user is running as root
+	#if the user is root creates Uvqqra_Yrns directory in /usr/local
+	#declare /usr/local/sbin/Uvqqra_Yrns as part of $PATH by modifying the bash profile for the root user
 	if [ $EUID = 0 ]; then
 	mkdir -p '/usr/local/sbin/Uvqqra_Yrns'
 	zyxpath=/usr/local/sbin/Uvqqra_Yrns
 		if [ -z $( cat /etc/profile | grep "^$zyxpath" ) ]; then 
 		echo "export PATH=$PATH:$zyxpath" > /etc/profile
 		fi
-
+	#calls the deploybox function and feeds it with 'd' as input
+	#d=deploy
+	#u=update
 	( deploybox $zyxpath d )
-
+	
+	#else if the user is not root
+	#folder Uvqqra_Yrns will be created inside the users home diretory : ~/Uvqqra_Yrns
 	else
-	mkdir -p '/tmp/Uvqqra_Yrns'
+	mkdir -p '~/Uvqqra_Yrns'
 		if [ $? -eq 0 ]; then
-		zyxpath=/tmp/Uvqqra_Yrns
+		zyxpath="~/Uvqqra_Yrns"
 		( deploybox $zyxpath d )
 			if [ -z $( cat ~/.bash_profile | grep "^$zyxpath" ) ]; then
 			echo "export PATH=$PATH:$zyxpath" > ~/.bash_profile
@@ -164,17 +183,17 @@ elif [ $1 = 'deploy' ]; then
 		exit 1
 		fi
 	fi
-###############
-elif [ $1 = 'update' ]; then
+#else if $1=update, called the deploybox  and feed it with 'u', which is equal to update.
+elif [ $1 = 'update' ]  && [ -z $2 ]; then
 	if [ $EUID = 0 ]; then
 	zyxpath=/usr/local/sbin/Uvqqra_Yrns
 	else
-	zyxpath=/tmp/Uvqqra_Yrns
+	zyxpath="~/Uvqqra_Yrns"
 	fi
 ( deploybox $zyxpath u )
 
-###############
-elif [ $1 = 'kit-deploy' ]; then
+#else if $1=kit-deploy - deploys the special tools mentioned in zyx-kit
+elif [ $1 = 'kit-deploy' ]  && [ -z $2 ]; then
 zyxpath=/tmp/$(whoami)/zyx-kit
 ( deploybox $zyxpath k );
 clear
@@ -217,32 +236,10 @@ more info at https://github.com/zyxrhythm/zyx-kit
 "
 ###############
 else
-#from https://www.cyberciti.biz/faq/how-to-display-countdown-timer-in-bash-shell-script-running-on-linuxunix/ and https://www.unix.com/302302337-post6.html
-countdown()
-(
-  IFS=:
-  set -- $*
-  secs=$(( ${1#0} * 3600 + ${2#0} * 60 + ${3#0} ))
-  while [ $secs -gt 0 ]
-  do
-    sleep 1 &
-    printf "\r%02d:%02d:%02d" $((secs/3600)) $(( (secs/60)%60)) $((secs%60))
-    secs=$(( $secs - 1 ))
-    wait
-  done
-  echo
-)
-#from https://www.cyberciti.biz/faq/how-to-display-countdown-timer-in-bash-shell-script-running-on-linuxunix/ and https://www.unix.com/302302337-post6.html
 
-clear && printf '\033[3J'
-echo -e "Invalid parameter! \n\nSelf destruct sequence initiated.\nDeleting all files and folders from this server in:\n"
-countdown "00:00:13"
-clear && printf '\033[3J'
-echo -e "\nAll files and folders deleted.\n\nRebooting server in:\n"
-countdown "00:00:10"
-clear && printf '\033[3J'
+echo "Scipt Failed."
 exit 1
-###############
+
 fi
 
 exit 0
