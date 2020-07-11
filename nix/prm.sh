@@ -60,16 +60,16 @@ elif [ $1 = '-x' ]; then
 	dir="$2"
 
 		if [ "${dir: -1}" != '/' ]; then
-		echo "$( echo "$(stat -c "%a %G %n" $dir/* && stat -c "%a %G %n" $dir/.* )" | column -t )"
+		echo "$( echo "$(stat -c "%a %U %G %n" $dir/* && stat -c "%a %U %G %n" $dir/.* )" | column -t )"
 		else
-        echo "$( echo "$(stat -c "%a %G %n" $dir* && stat -c "%a %G %n" $dir.*)" | column -t)"
+        echo "$( echo "$(stat -c "%a %U %G %n" $dir* && stat -c "%a %G %n" $dir.*)" | column -t)"
     	fi
 
 	elif [ $p2chk = 'file' ]  && [ ! -z $2 ]; then 
   	echo -e "\nInvalid syntax! Parameter 1 is '-x' which will not work if parameter 2 is a file. \n\nTry perm '<path to file>'\n"
 
 	elif [ -z $2 ]; then
-	echo "$( echo "$(stat -c "%a %G %n" * && stat -c "%a %G %n" .*)" | column -t )"
+	echo "$( echo "$(stat -c "%a %U %G %n" * && stat -c "%a %U %G %n" .*)" | column -t )"
     
     elif [ $p2chk = 'unknown' ]; then
     echo "( $2 ) Invalid input."
