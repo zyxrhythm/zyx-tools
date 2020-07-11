@@ -1,5 +1,5 @@
 #!/bin/bash
-#This script was created by Zyx Rhythm (email:zyxrhythm@gmail.com)
+#This script was created by Zyx Rhythm https://github.com/zyxrhythm (email:zyxrhythm@gmail.com)
 #And it can be downloaded at https://github.com/zyxrhythm/zyx-tools/
 #############################################
 
@@ -33,37 +33,39 @@ whoisprog='whois'
 zyxwhois="whois --verbose"
 
 else
-echo -e "\nA whois program is not installed.\n"
+echo -e "\nA whois program not installed.\n"
 exit 1
 fi
 
 domain=$(echo $1 | gawk '{print tolower($0)}' )
+#more info trigger if -f is added after the domain more info will be provided
 
-#more info trigger
 if [[ $2 = '-f' ]]; then
 checknsrb="y"
 else
 checknsrb="n"
 fi
 
-if [[ -z "$domain" ]]; then
+if [[ -z $domain ]]; then
 echo -e "\nInvalid Input: Empty.\n"
 exit 1
 
 else
 
+#checks if the input domain is a valid domain, by checking the first and last characted of the input, sometimes people copies domain from subdomains and accidentaly copies the . between the subdomain and the second level domain, or copies domains directly from a browser and a '/' is included at the of the copied domain.
 valid='0-9a-z'
 	if [[ ${domain:0:1} =~ [^$valid] ]] || [[ ${domain: -1} =~ [^$valid] ]]; then
 
 	echo -e "\nInput Cannot start/end with a symbol.\n"
 	exit 1
 	fi
-
+	#since people sometimes just copies and pastes domain names copied directly from browsers address bar, the following will remove hhttps:// or http:// from the input
 	if [[ ${domain:0:8} = "https://" ]] || [[ ${domain:0:7} = "http://" ]]; then
 	domain="${domain#*//}"
 	fi
 
-	#determine if whois or jwhois
+	#determines what whois program is install on the host whether whois or jwhois and adjust how the scipt executes the whois command
+	#the variable zyx contains the raw whois data
 	if [[ $whoisprog = 'jwhois' ]]; then
 	zyx0=$($zyxwhois $domain 2>&1)
 	zyx=$(echo "$zyx0" | sed  '1,2d' )
@@ -84,11 +86,12 @@ valid='0-9a-z'
 	trywis=${trywis0#*Using server }
 
 	else
-	echo -e "\nHanggang sa dulo ng ating walang hanggan, hangga't ang puso'y wala ng maramdaman.\n"
+	echo -e "\nCannot determine the whois program installed.\n"
 	exit 1
 
 	fi
-
+	
+	#gets thhe name servers the the raw whois data
 	nsxx=$(echo "$zyx" | grep -i -e 'Name server:' )
 
 	cnamec=$(dig A +noall +answer $domain)
@@ -110,15 +113,18 @@ valid='0-9a-z'
 	# THE GREAT FUNCTION HALL
 	#=================
 
-	#Domain Status Functions
+	#Domain Status Function
+	#this extract the domain statuses from the whois data
+	#cutting the lines after '#'
 	dsfunction () {
 
 	while IFS= read -r line; do
 	echo "${line#*#}"
 	done < <(printf '%s\n' "$1")
 	}
-
-	#Name Servers Function
+	
+	#Name Server Function
+	#this will extract the authortative name servers from the whois data, and if $2= "-f" the function will check if each name server resolves to an IP address then to determine if the authoritative nameserver is 'digable' the the  function will  attempt to dig records from the  nameservers 
 	nsfunction () {
 	if [[ -z $2 ]] && [[ $checknsrb = "y" ]]; then
 	echo -e "Name Servers:\n"
@@ -225,7 +231,13 @@ valid='0-9a-z'
 	fi
 	}
 
-	#A Record Function
+	#A Record Function can/will: 
+	#dig the A records under a domain name 
+	#detemine if the each IP address is really an IP address using regex 
+	#check if the IP is one of those reserved IP`s
+	#checks if the domain resolves to just a CNAME or the domain does not resolve to an IP address at all
+	#query whois with each IP found, and the name of organization responsible for the IP address will be extracted from the result
+	
 	arfunction () {
 
 	cnchk=$( dig CNAME $domain @8.8.8.8 )
@@ -316,7 +328,13 @@ valid='0-9a-z'
 	fi
 	}
 
-	#MX Record/s Function
+	#MX Record Function can/will: 
+	#dig the all MX records under a domain name 
+	#detemine if the each name under on the MX resolves to an IP address
+	#check if the IP address is really an IP addres using regex 
+	#check if the IP is one of those reserved IPs
+	#detemine whether the MX record is setup properly
+	
 	mrfunction () {
 
 	if [[ -z $2 ]]; then
@@ -482,9 +500,10 @@ valid='0-9a-z'
 	fi
 	}
 
-	#DaysCalcFunction
+	#This function is responsible for calculating days since regitered, days left on registrar, days left on registry
 	countdfunc () {
 	extdate=$(echo "$1" | grep -o -P '(?<=Date:).*(?=T)' | tr -d '\040\011\012\015' )
+
 	#some registrar does not have the "T" on the expiration date but has a space divide the date and time - thus the above will not be enough
 	#The following line will utilize the space between the date and the time instead
 	if [[ -z $extdate ]]; then
@@ -499,7 +518,7 @@ valid='0-9a-z'
 	# END OF FUNCTION HALL
 	#=====================
 
-	#domain validity check -if  by checking the first 9 characters on the raw whois result
+	#domain validity check -if  by checking the first 9 characters on the raw whois data
 	dvc=$(echo "${zyx:0:9}" |  gawk '{print tolower($0)}' | tr -d '\040\011\012\015')
 
 	if [[ $dvc = 'domainno' ]] || [[ $dvc = 'nomatch' ]] || [[ $dvc = 'notfound' ]] || [[ $dvc = 'nodataf' ]] || [[ $dvc = 'nowhois' ]] || [[ $dvc = 'thisdoma' ]] || [[ $dvc = 'nom' ]] || [[ $dvc = 'invalidq' ]] || [[ $dvc = 'whoisloo' ]] || [[ $dvc = 'theregis' ]] || [[ $dvc = 'connect' ]] || [[ $dvc = 'available' ]] || [[ $dvc = ">>>domai" ]] || [[ $dvc = "connect:" ]] || [[ $dvc = 'errorth' ]] || [[ $dvc = 'noinform' ]] || [[ $dvc = 'thequeri' ]]; then
