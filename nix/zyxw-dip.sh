@@ -81,7 +81,8 @@ valid='0-9a-z'
 	zyx0=$($zyxwhois $domain 2>&1)
 	zyx=$(echo "$zyx0" | sed -e '1,/Query string:/d' | sed -n '1!p' )
 	trywis0=$(echo "$zyx0" | grep -i -e "Using server" | sort -u )
-	trywis=${trywis0#*Using server }
+	trywisx=${trywis0#*Using server }
+	trywis=${trywisx%?}
 
 	else
 	echo -e "\nHanggang sa dulo ng ating walang hanggan, hangga't ang puso'y wala ng maramdaman.\n"
@@ -541,7 +542,7 @@ valid='0-9a-z'
 
 			whoisserver0=$(echo "$whoisservergrep" | cut -f2 -d":" | tr -d '\040\011\012\015' )
 			whoisserverx=${whoisserver0#*Using Server }
-			whoisserver=${whoisserverx%?}
+
 			else
 			whoisserver=$(echo "$whoisservergrep" | cut -f2 -d":" | tr -d '\040\011\012\015' )
 			fi
