@@ -642,7 +642,7 @@ valid='0-9a-z'
 	echo -e "__________________________\n\nDomain Name: $domain\nRegistrar: ${registrar#*:}\nReseller: $reese\n__________________________\n\nDomain Status:\n\n$dsfrgt\n__________________________\n\nCreation Date: $creationdate1\nRegistry Expiry Date: $expdx1\nRegistrar Expiry Date: $expd1\n__________________________"
 
 	if [[ $checknsrb = 'y' ]]; then
-	echo -e "\n--------------------------\nBased on this server's time and time zone\n($(date))\n\n$dayssincevar : $dayssince \n$dltryvar : $dayslefttry \n$dlrarvar: $daysleftrar \n--------------------------\n__________________________\n"
+	echo -e "\n--------------------------\nBased on this host's time and time zone\n($(date))\n\n$dayssincevar : $dayssince \n$dltryvar : $dayslefttry \n$dlrarvar: $daysleftrar \n--------------------------\n__________________________\n"
 	fi
 
 	#verifies if an auth resolves to an IP address - good for verifying glue records
