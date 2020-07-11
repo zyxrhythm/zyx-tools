@@ -540,7 +540,8 @@ valid='0-9a-z'
 			elif [[ $whoisprog = 'whois' ]]; then
 
 			whoisserver0=$(echo "$whoisservergrep" | cut -f2 -d":" | tr -d '\040\011\012\015' )
-			whoisserver=${whoisserver0#*Using Server }
+			whoisserverx=${whoisserver0#*Using Server }
+			whoisserver=${whoisserverx%?}
 			else
 			whoisserver=$(echo "$whoisservergrep" | cut -f2 -d":" | tr -d '\040\011\012\015' )
 			fi
