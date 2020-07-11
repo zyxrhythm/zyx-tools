@@ -83,7 +83,8 @@ valid='0-9a-z'
 	zyx0=$($zyxwhois $domain 2>&1)
 	zyx=$(echo "$zyx0" | sed -e '1,/Query string:/d' | sed -n '1!p' )
 	trywis0=$(echo "$zyx0" | grep -i -e "Using server" | sort -u )
-	trywis=${trywis0#*Using server }
+	trywisx=${trywis0#*Using server }
+	trywis=${trywisx%?}
 
 	else
 	echo -e "\nCannot determine the whois program installed.\n"
@@ -560,6 +561,7 @@ valid='0-9a-z'
 
 			whoisserver0=$(echo "$whoisservergrep" | cut -f2 -d":" | tr -d '\040\011\012\015' )
 			whoisserver=${whoisserver0#*Using Server }
+
 			else
 			whoisserver=$(echo "$whoisservergrep" | cut -f2 -d":" | tr -d '\040\011\012\015' )
 			fi
@@ -659,7 +661,7 @@ valid='0-9a-z'
 	echo -e "__________________________\n\nDomain Name: $domain\nRegistrar: ${registrar#*:}\nReseller: $reese\n__________________________\n\nDomain Status:\n\n$dsfrgt\n__________________________\n\nCreation Date: $creationdate1\nRegistry Expiry Date: $expdx1\nRegistrar Expiry Date: $expd1\n__________________________"
 
 	if [[ $checknsrb = 'y' ]]; then
-	echo -e "\n--------------------------\nBased on this server's time and time zone\n($(date))\n\n$dayssincevar : $dayssince \n$dltryvar : $dayslefttry \n$dlrarvar: $daysleftrar \n--------------------------\n__________________________\n"
+	echo -e "\n--------------------------\nBased on this host's time and time zone\n($(date))\n\n$dayssincevar : $dayssince \n$dltryvar : $dayslefttry \n$dlrarvar: $daysleftrar \n--------------------------\n__________________________\n"
 	fi
 
 	#verifies if an auth resolves to an IP address - good for verifying glue records
