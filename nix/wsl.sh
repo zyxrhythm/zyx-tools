@@ -5,7 +5,6 @@ exit 1
 fi
 
 s1=$1
-
 list="ssh
 apache2
 mysql
@@ -17,20 +16,20 @@ do
 testat=$(echo "$(service $x status)" | grep -i -e stop -e fail )
 
 if [[ $s1 = start  && -z $testat ]]
-then echo "service is up, doing nothing"
+then echo "$x service is up, doing nothing"
 
 elif [[ $s1 = start && ! -z $testat ]]
-then service $x $s1
+then service $x $1
 
 elif [[ $s1 = stop && -z $testat ]]
-then service $x $s1
+then service $x $1
 
 elif [[ $s1 = stop && ! -z $testat ]]
-then echo "service is down, doing nothing"
+then echo "$x service is down, doing nothing"
 
 fi
 
-if [[ $x = webmin && $s1 = start ]]; then echo "[ ok ] Starting Webmin web panel: $x"; fi
+if [[ $x = webmin && $1 = start ]]; then echo "[ ok ] Starting Webmin web panel: $x"; fi
 
 done < <(printf "%s\n" "$list" )
 
