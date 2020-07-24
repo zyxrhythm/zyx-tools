@@ -29,7 +29,7 @@ then echo "$x service is down, doing nothing"
 
 fi
 
-if [[ $x = webmin && $1 = start ]]; then echo "[ ok ] Starting Webmin web panel: $x"; fi
+if [[ $x = webmin && $1 = start && -z $testat ]]; then echo "[ ok ] Starting Webmin web panel: $x"; fi
 
 done < <(printf "%s\n" "$list" )
 
