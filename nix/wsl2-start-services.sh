@@ -10,7 +10,8 @@ s1=$1
 #default list - do not add blank lines
 list="ssh
 apache2
-mysql"
+mysql
+vsftpd"
 
 #case additional programs should be started parameter 2 ($2) should be '-add'
 #And parameter 3 ($3) should be a string of programs to start/stop with (,) as the delimiter, and should not start and end with  (,) 
