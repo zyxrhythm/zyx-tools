@@ -1,5 +1,5 @@
 #!/bin/bash
-#parameter 1 ($1)should be 'start' /'stop'
+#Parameter 1 ($1)should be 'start' /'stop'
 if [[ $1 != stop && $1 != start ]]
 then echo "Invalid parameter 1: $1 --- \$1 should be 'stop'/'start'".
 exit 1
@@ -7,15 +7,16 @@ fi
 
 s1=$1
 
-#default list - do not add blank lines
+#Default list - you remove all entries here by making the its value ="" and just specify the names of those that needs to be started by adding '-add' as parameter 2.
+#Do not add blank lines
 list="ssh
 apache2
 mysql
 vsftpd"
 
-#case additional programs should be started parameter 2 ($2) should be '-add'
+#Case additional programs should be started, parameter 2 ($2) should be '-add'
 #And parameter 3 ($3) should be a string of programs to start/stop with (,) as the delimiter, and should not start and end with  (,) 
-#parameter 3 sample: name1,name2
+#Parameter 3 sample: name1,name2
 s3=$3
 if [[ ! -z $2 && $2 != '-add' ]]; then
 echo "Invalid parameter 2: $2 --- \$2 should be '-add'."
@@ -29,7 +30,7 @@ fi
 while IFS= read -r x
 do
 
-#checks if the service is up/down/unrecognized
+#Checks if the service is up/down/unrecognized
 testatx="$(service $x status 2> /dev/null)" 
 if [[ ! -z $( grep -i -e stop -e fail <<< "$testatx" ) ]]; then testat=d; elif [[ -z $testatx ]]; then testat=x; else testat=u;fi
 
@@ -45,7 +46,7 @@ then service $x $1
 elif [[ $s1 = stop && $testat = u ]]
 
 then 
-#special "stopped" text for webmin
+#Special "stopped" text for webmin
 if [[ $x = webmin && $s1 = stop && $testat = u ]]; then service $x $1 > /dev/null 2>&1 && echo "[ ok ] Stopping Webmin web panel: $x."
 else
 
@@ -57,7 +58,7 @@ then echo "$x service is down, doing nothing"
 
 fi
 
-#special "started" text for webmin
+#Special "started" text for webmin
 if [[ $x = webmin && $s1 = start && $testat = d ]]; then echo "[ ok ] Starting Webmin web panel: $x."; fi
 
 done < <(echo "$list")
