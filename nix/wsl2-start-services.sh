@@ -7,8 +7,13 @@ fi
 s1=$1
 list="ssh
 apache2
-mysql
-webmin"
+mysql"
+
+s3=$3
+if [[ $2 = list && ! -z $3 ]]; then
+#add $3 to $list
+list="$(echo -e "$list\n$(echo -e "${s3//,/"\n"}" )" )"
+fi
 
 while IFS= read -r x
 do
@@ -31,7 +36,8 @@ fi
 
 if [[ $x = webmin && $s1 = start && ! -z $testat ]]; then echo "[ ok ] Starting Webmin web panel: $x"; fi
 
-done < <(printf "%s\n" "$list" )
+done < <(echo "$list")
 
 hostipaddress=$(awk '{print $2}' <<< $(ifconfig eth0 | grep -w inet))
 echo Host IP: $hostipaddress
+
