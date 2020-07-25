@@ -7,7 +7,7 @@ fi
 
 s1=$1
 
-#Default list - you remove all entries here by making the its value ="" and just specify the names of those that needs to be started by adding '-add' as parameter 2.
+#Default list - you can remove all entries here by making the its value ="" , and just specify the names of those that needs to be started after adding '-add' as parameter 2.
 #Do not add blank lines
 list="ssh
 apache2
