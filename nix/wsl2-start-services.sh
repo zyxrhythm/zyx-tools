@@ -12,11 +12,11 @@ list="ssh
 apache2
 mysql"
 
-#case additional programs should be started parameter 2 should be 'list'
-#And parameter 3 ($3) should be a string of programs to start/stop with (,) as the delimiter and should not start and end with  (,) 
-#parameter 3 sample: webmin,vsftp
+#case additional programs should be started parameter 2 ($2) should be '-add'
+#And parameter 3 ($3) should be a string of programs to start/stop with (,) as the delimiter, and should not start and end with  (,) 
+#parameter 3 sample: name1,name2
 s3=$3
-if [[ $2 = list && ! -z $3 ]]; then
+if [[ $2 = '-add' && ! -z $3 ]]; then
 #add $3 to $list
 list="$(echo -e "$list\n$(echo -e "${s3//,/"\n"}" )" )"
 fi
@@ -24,25 +24,36 @@ fi
 while IFS= read -r x
 do
 
-#checks if the service is up/down
-testat=$(echo "$(service $x status)" | grep -i -e stop -e fail )
+#checks if the service is up/down/unrecognized
+testatx="$(service $x status 2> /dev/null)" 
+if [[ ! -z $( grep -i -e stop -e fail <<< "$testatx" ) ]]; then testat=d; elif [[ -z $testatx ]]; then testat=x; else testat=u;fi
 
-if [[ $s1 = start  && -z $testat ]]
+if [[ $s1 = stop || $s1 = start ]] && [[ $testat = x ]]
+then echo "$x : unknown"
+
+elif [[ $s1 = start  && $testat = u ]]
 then echo "$x service is up, doing nothing"
 
-elif [[ $s1 = start && ! -z $testat ]]
+elif [[ $s1 = start && $testat = d ]]
 then service $x $1
 
-elif [[ $s1 = stop && -z $testat ]]
-then service $x $1
+elif [[ $s1 = stop && $testat = u ]]
 
-elif [[ $s1 = stop && ! -z $testat ]]
+then 
+#special "stopped" text for webmin
+if [[ $x = webmin && $s1 = stop && $testat = u ]]; then service $x $1 > /dev/null 2>&1 && echo "[ ok ] Stopping Webmin web panel: $x."
+else
+
+service $x $1
+fi
+
+elif [[ $s1 = stop && $testat = d ]]
 then echo "$x service is down, doing nothing"
 
 fi
 
 #special "started" text for webmin
-if [[ $x = webmin && $s1 = start && ! -z $testat ]]; then echo "[ ok ] Starting Webmin web panel: $x"; fi
+if [[ $x = webmin && $s1 = start && $testat = d ]]; then echo "[ ok ] Starting Webmin web panel: $x."; fi
 
 done < <(echo "$list")
 
