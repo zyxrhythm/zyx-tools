@@ -1,7 +1,7 @@
 #!/bin/bash
 #parameter 1 ($1)should be 'start' /'stop'
 if [[ $1 != stop && $1 != start ]]
-then echo "$1 invalid parameter"
+then echo "Invalid parameter 1: $1 --- \$1 should be 'stop'/'start'".
 exit 1
 fi
 
@@ -17,7 +17,11 @@ vsftpd"
 #And parameter 3 ($3) should be a string of programs to start/stop with (,) as the delimiter, and should not start and end with  (,) 
 #parameter 3 sample: name1,name2
 s3=$3
-if [[ $2 = '-add' && ! -z $3 ]]; then
+if [[ ! -z $2 && $2 != '-add' ]]; then
+echo "Invalid parameter 2: $2 --- \$2 should be '-add'."
+exit 1
+
+elif [[ $2 = '-add' && ! -z $3 ]]; then
 #add $3 to $list
 list="$(echo -e "$list\n$(echo -e "${s3//,/"\n"}" )" )"
 fi
