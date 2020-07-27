@@ -22,12 +22,17 @@ else
 
 clear && echo -en "\e[3J"
 
+#determines if whois or jwhois is installed
 whoisprogtest=$(if [[ -e /usr/bin/whois ]] && [[ ! -d /usr/bin/whois ]] && [[ ! -e /usr/bin/jwhois ]]; then echo 'whois'; else echo 'jwhois'; fi )
 
+#if jwhois is installed, the script will use 'whois -n' for whois lookups
+#the -n flag 'disable features that redirect queries from one server to another'
 if [[ $whoisprogtest = 'jwhois' ]]; then
 whoisprog='jwhois'
 zyxwhois="whois -n"
 
+#if whois is installed, the script will use 'whois --verbose'
+#the --verbose flag will print the whois server used on the result
 elif [[ $whoisprogtest = 'whois' ]]; then
 whoisprog='whois'
 zyxwhois="whois --verbose"
@@ -37,67 +42,104 @@ echo -e "\nA whois program not installed.\n"
 exit 1
 fi
 
-domain=$(echo $1 | gawk '{print tolower($0)}' )
-#more info trigger if -f is added after the domain more info will be provided
-
-if [[ $2 = '-f' ]]; then
-checknsrb="y"
-else
-checknsrb="n"
+#check if which command is installed
+#the scipt uses which  command to detemine if other necessary programs are installed on the host
+if [[ ! -e /usr/bin/which ]] && [[ ! -d /usr/bin/which ]]
+then 
+	echo -e "\n which command not found. please install which."
 fi
 
+#list of program that needs to be installed
+proglist=$( echo -e "dig\ngawk\nsed\nnslookup")
+
+#checks all programs on the list are installed
+progcheckfunc (){
+while IFS= read prog
+do
+	if [[ ! -z $prog ]]
+	then
+		if [[ $(which $prog > /dev/null 2>&1; echo $? ) -gt 0 ]]
+		then 
+			echo $prog not installed. please install $prog.
+		fi
+	fi
+done < <(echo "$1" )
+}
+
+pcresult=$(progcheckfunc "$proglist" )
+
+#terminates the script if one of the 
+if [[ ! -z $pcresult ]]
+then
+echo "$pcresult"
+exit 1
+fi
+
+#chenges all uppercase letters of the input domain lowercase
+domain=$(echo $1 | gawk '{print tolower($0)}' )
+
+#more info trigger: if -f is added after the domain, more info will be provided
+#this in particular will make the nsfunction resolve the authoritative name server to their ip address and check if each server is 'digable'
+if [[ $2 = '-f' ]]; then checknsrb="y"; else checknsrb="n"; fi
+
+#checks if $1 is empty
 if [[ -z $domain ]]; then
 echo -e "\nInvalid Input: Empty.\n"
 exit 1
 
 else
-
-#checks if the input domain is a valid domain, by checking the first and last characted of the input, sometimes people copies domain from subdomains and accidentaly copies the . between the subdomain and the second level domain, or copies domains directly from a browser and a '/' is included at the of the copied domain.
-valid='0-9a-z'
-	if [[ ${domain:0:1} =~ [^$valid] ]] || [[ ${domain: -1} =~ [^$valid] ]]; then
-
-	echo -e "\nInput Cannot start/end with a symbol.\n"
-	exit 1
-	fi
-	#since people sometimes just copies and pastes domain names copied directly from browsers address bar, the following will remove hhttps:// or http:// from the input
+	#since people sometimes just copies domain names directly from browsers address bar, the following will remove https:// or http:// from the input
 	if [[ ${domain:0:8} = "https://" ]] || [[ ${domain:0:7} = "http://" ]]; then
 	domain="${domain#*//}"
 	fi
 
-	#determines what whois program is install on the host whether whois or jwhois and adjust how the scipt executes the whois command
-	#the variable zyx contains the raw whois data
-	if [[ $whoisprog = 'jwhois' ]]; then
-	zyx0=$($zyxwhois $domain 2>&1)
-	zyx=$(echo "$zyx0" | sed  '1,2d' )
+	#checks if the input domain is a valid domain, by checking the first and last character, making sure that the domain starts with only alphanumeric chars, and ends in a letter
+	validstart='0-9a-z'
+	validend='a-z'
+	if [[ ${domain:0:1} =~ [^$validstart] ]] || [[ ${domain: -1} =~ [^$validend] ]]; then
 
-		if [[ $(echo "${zyx:0:9}" | gawk '{print tolower($0)}' | tr -d '\040\011\012\015' ) = "nomatch" ]]; then
-		zyxdvc0=$($zyxwhois $domain  -h whois.iana.org 2>&1)
-		zyxdvc1=$(echo "$zyxdvc0" | sed  '1,2d' )
-		zyxdvc="${zyxdvc1:0:9}"
+	echo -e "\nInput must not start with non-alphanumeric character, or end with a number/symbol.\n"
+	exit 1
+	fi
+
+	#the variable zyx contains the raw whois lookup data
+	#extracts the registry whois server fromt the whois lookup depending on the whois program installed
+	if [[ $whoisprog = 'jwhois' ]]
+	then
+		zyx0=$($zyxwhois $domain 2>&1)
+		zyx=$(echo "$zyx0" | sed  '1,2d' )
+
+		if [[ $(echo "${zyx:0:9}" | gawk '{print tolower($0)}' | tr -d '\040\011\012\015' ) = "nomatch" ]]
+		then
+			zyxdvc0=$($zyxwhois $domain  -h whois.iana.org 2>&1)
+			zyxdvc1=$(echo "$zyxdvc0" | sed  '1,2d' )
+			zyxdvc="${zyxdvc1:0:9}"
 		fi
 
 		trywis0=$(echo "$zyx0" | grep -F -i -e "[Querying" | sort -u | tr -d '\[\] ' )
 		trywis="${trywis0#*Querying}"
 
-	elif [[ $whoisprog = 'whois' ]]; then
-	zyx0=$($zyxwhois $domain 2>&1)
-	zyx=$(echo "$zyx0" | sed -e '1,/Query string:/d' | sed -n '1!p' )
-	trywis0=$(echo "$zyx0" | grep -i -e "Using server" | sort -u )
-	trywisx=${trywis0#*Using server }
-	trywis=${trywisx%?}
+	elif [[ $whoisprog = 'whois' ]]
+	then
+		zyx0=$($zyxwhois $domain 2>&1)
+		zyx=$(echo "$zyx0" | sed -e '1,/Query string:/d' | sed -n '1!p' )
+		trywis0=$(echo "$zyx0" | grep -i -e "Using server" | sort -u )
+		trywisx=${trywis0#*Using server }
+		trywis=${trywisx%?}
 
 	else
-	echo -e "\nCannot determine the whois program installed.\n"
+	echo -e "\ncannot identify the whois program installed.\n"
 	exit 1
 
 	fi
 	
-	#gets thhe name servers the the raw whois data
+	#gets the authoritative name servers from the raw whois lookup data
 	nsxx=$(echo "$zyx" | grep -i -e 'Name server:' )
-
+	
+	#checks if the domain resolves to an IP address or just a CNAME
 	cnamec=$(dig A +noall +answer $domain)
 	cnamec0=$(dig CNAME +noall +answer $domain)
-
+	
 	if [[ -z $( echo "$cnamec $cnamec0" | grep "IN.CNAME" ) ]]; then
 	cnc="n"
 	else
@@ -124,7 +166,7 @@ valid='0-9a-z'
 	done < <(printf '%s\n' "$1")
 	}
 	
-	#Name Server Function
+	#Name Server Function:
 	#this will extract the authortative name servers from the whois data, and if $2= "-f" the function will check if each name server resolves to an IP address then to determine if the authoritative nameserver is 'digable' the the  function will  attempt to dig records from the  nameservers 
 	nsfunction () {
 	if [[ -z $2 ]] && [[ $checknsrb = "y" ]]; then
@@ -232,7 +274,7 @@ valid='0-9a-z'
 	fi
 	}
 
-	#A Record Function can/will: 
+	#A Record Function: 
 	#dig the A records under a domain name 
 	#detemine if the each IP address is really an IP address using regex 
 	#check if the IP is one of those reserved IP`s
@@ -329,9 +371,9 @@ valid='0-9a-z'
 	fi
 	}
 
-	#MX Record Function can/will: 
+	#MX Record Function: 
 	#dig the all MX records under a domain name 
-	#detemine if the each name under on the MX resolves to an IP address
+	#detemine if the each MX resolves to an IP address
 	#check if the IP address is really an IP addres using regex 
 	#check if the IP is one of those reserved IPs
 	#detemine whether the MX record is setup properly
@@ -583,10 +625,10 @@ valid='0-9a-z'
 
 	#TLD LISTS
 	shopt -s extglob
-	#general list of supported TLD for dip.zyx
+	#general list of supported TLD
 	tldlistg="+(aarp|able|abogado|abudhabi|academy|accountant|accountants|active|actor|ads|adult|aero|africa|agency|airforce|ally|alsace|amsterdam|anquan|apartments|app|arab|archi|army|arpa|art|asia|associates|attorney|auction|audio|author|auto|autos|baby|band|bank|bar|barcelona|barefoot|bargains|baseball|basketball|bayern|bcn|beauty|beer|berlin|best|bet|bible|bid|bike|bingo|bio|biz|black|blackfriday|blockbuster|blog|blue|boats|boo|book|booking|boston|bot|boutique|box|broadway|broker|brother|brussels|budapest|build|builders|business|buy|buzz|bzh|cab|cafe|cal|call|cam|camera|camp|cancerresearch|capetown|capital|car|caravan|cards|care|career|careers|cars|casa|case|cash|casino|cat|catering|catholic|cba|cbn|cbre|cbs|ceb|center|ceo|cern|cfa|cfd|channel|charity|chase|chat|cheap|christmas|chrome|church|cipriani|circle|citadel|citic|city|cityeats|claims|cleaning|click|clinic|clinique|clothing|cloud|club|clubmed|coach|codes|coffee|college|cologne|com|community|company|compare|computer|comsec|condos|construction|consulting|contact|contractors|cooking|cool|coop|corsica|country|coupon|coupons|courses|credit|creditcard|creditunion|cricket|crown|crs|cruise|cruises|cymru|dabur|dad|dance|data|date|dating|day|dds|deal|dealer|deals|degree|delivery|democrat|dental|dentist|desi|design|dev|diamonds|diet|digital|direct|directory|discount|discover|diy|dnp|docs|doctor|dog|doha|domains|dot|download|drive|dubai|duck|durban|earth|eat|eco|education|email|energy|engineer|engineering|enterprises|equipment|esq|estate|eurovision|eus|events|everbank|exchange|expert|exposed|express|fail|faith|family|fan|fans|farm|farmers|fashion|fast|feedback|fidelity|film|final|finance|financial|fire|fish|fishing|fit|fitness|flights|flir|florist|flowers|fly|foo|food|football|forsale|forum|foundation|free|frl|frontdoor|fun|fund|furniture|futbol|fyi|gal|gallery|game|games|garden|gdn|gent|gift|gifts|gives|giving|glass|global|gmbh|gold|golf|got|graphics|gratis|green|gripe|grocery|group|guide|guitars|guru|hair|hamburg|haus|health|healthcare|help|helsinki|here|hiphop|hitachi|hiv|hockey|holdings|holiday|homes|horse|hospital|host|hosting|hot|hoteles|hotels|house|how|ice|icu|imamat|immo|inc|industries|info|ing|ink|institute|insurance|insure|int|international|investments|irish|ismaili|ist|istanbul|java|jetzt|jewelry|jo|jobs|joburg|jot|joy|jprs|juegos|kaufen|kddi|ke|kim|kinder|kitchen|kiwi|koeln|kosher|kpmg|kpn|krd|kred|kuokgroup|kyoto|lacaixa|ladbrokes|lamer|lancia|lancome|land|lat|latino|latrobe|law|lawyer|lds|lease|leclerc|legal|lgbt|life|lifeinsurance|lifestyle|lighting|like|lilly|limited|limo|linde|link|lipsy|live|living|llc|loan|loans|locker|lol|london|lotto|love|ltd|ltda|luxe|luxury|madrid|maison|makeup|man|management|mango|map|market|marketing|markets|mba|med|media|meet|melbourne|meme|memorial|men|menu|miami|mini|mint|mit|mlb|mls|mma|mobi|mobile|mobily|moda|moe|moi|mom|monash|money|mormon|mortgage|moscow|moto|motorcycles|mov|movie|movistar|msd|mtn|mtr|museum|mutual|nab|nadex|nagoya|name|nationwide|natura|navy|nec|net|netbank|network|new|news|next|nextdirect|ngo|ninja|now|nowruz|nrw|nyc|observer|office|okinawa|oldnavy|one|ong|onl|online|ooo|open|org|organic|origins|osaka|ott|ovh|page|paris|pars|partners|parts|party|passagens|pay|pet|pharmacy|phd|phone|photo|photography|photos|physio|pics|pictures|pid|pin|ping|pink|pizza|place|play|plumbing|plus|poker|politie|porn|post|press|prime|pro|prod|productions|prof|promo|properties|property|protection|pub|qpon|quebec|quest|racing|radio|raid|read|realestate|realtor|realty|recipes|red|rehab|reise|reisen|reit|rent|rentals|repair|report|republican|rest|restaurant|review|reviews|rich|rio|rip|rocks|rodeo|room|rsvp|rugby|ruhr|run|ryukyu|saarland|safe|safety|sale|salon|sarl|save|scholarships|school|schule|science|scot|search|seat|secure|security|seek|select|services|seven|sew|sex|sexy|shell|shia|shiksha|shoes|shop|shopping|show|showtime|silk|singles|site|ski|skin|smile|soccer|social|softbank|software|solar|solutions|song|soy|space|sport|spot|spreadbetting|srl|star|stockholm|storage|store|stream|studio|study|style|sucks|supplies|supply|support|surf|surgery|swiss|sydney|systems|tab|taipei|talk|target|tatar|tattoo|tax|taxi|team|tech|technology|tel|tennis|theater|theatre|tickets|tienda|tips|tires|tirol|today|tokyo|tools|top|total|tours|town|toys|trade|trading|training|travel|travelers|trust|trv|tube|tui|tunes|university|uno|vacations|vegas|ventures|versicherung|vet|viajes|video|vig|viking|villas|vin|vip|vision|vivo|vlaanderen|vodka|vote|voting|voto|voyage|vuelos|wales|wang|wanggou|watch|watches|weather|webcam|website|wed|wedding|weibo|weir|whoswho|wien|wiki|win|wine|winners|work|works|world|wow|wtf|xihuan|xin|xyz|yachts|yoga|yokohama|you|yun|zara|zero|zip|zone|zuerich|ca|us|co|cc|me|ac|tv|in)"
 
-	#supported TLD list - but will output raw whois info
+	#supported TLD list 2 - but will output raw whois info
 	tldlist0="+(ad|ae|af|ag|ai|al|am|ao|aq|ar|as|at|aw|ax|az|ba|bb|bd|be|bf|bg|bh|bi|bj|bm|bn|bo|br|bs|bt|bw|by|bz|cd|cf|cg|ch|ci|ck|cl|cm|cn|cr|cu|cv|cw|cx|cy|cz|de|dj|dk|dm|do|dz|ec|ee|eg|er|es|et|fi|fj|fk|fm|fo|fr|ga|gd|ge|gf|gg|gh|gi|gl|gm|gn|gp|gq|gr|gs|gt|gu|gw|gy|hk|hm|hn|hr|ht|hu|id|ie|il|im|io|iq|ir|is|it|je|jm|jo|ke|kg|kh|ki|km|kn|kp|kr|kw|ky|kz|la|lb|lc|li|lk|lr|ls|lt|lu|lv|ly|ma|mc|md|mg|mh|mk|ml|mm|mn|mo|mp|mq|mr|ms|mt|mu|mv|mw|mx|my|mz|na|nc|ne|nf|ng|ni|nl|no|np|nr|nu|om|pa|pe|pf|pg|pk|pl|pm|pn|pr|ps|pt|pw|py|qa|re|ro|rs|ru|rw|sa|sb|sc|sd|se|sh|si|sk|sl|sm|sn|so|sr|ss|st|sv|sx|sy|sz|tc|td|tf|tg|th|tj|tk|tl|tm|tn|to|tr|tt|tw|tz|ua|ug|uy|uz|va|vc|ve|vg|vi|vu|wf|ws|ye|yt|za|zm|zw)"
 
 	#exclulded TLDS
@@ -605,7 +647,7 @@ valid='0-9a-z'
 	#stores the registrar name on a variable
 	registrar=$(echo "$zyx" | grep -i -e "registrar:" | sort -u )
 
-	#stores the func processed domain status on a variable
+	#stores the dsfunction output on a variable
 	dsfrgt=$( dsfunction "$(echo "$zyx" | grep -i -e "status:" )" )
 
 	#stores the domain's creation date
@@ -664,7 +706,7 @@ valid='0-9a-z'
 	echo -e "\n--------------------------\nBased on this host's time and time zone\n($(date))\n\n$dayssincevar : $dayssince \n$dltryvar : $dayslefttry \n$dlrarvar: $daysleftrar \n--------------------------\n__________________________\n"
 	fi
 
-	#verifies if an auth resolves to an IP address - good for verifying glue records
+	#verifies if authoritative name servers resolves to an IP address - good for verifying glue records
 	nscheckfunc () {
 	while IFS= read -r linec; do
 	dqns=$( echo "${linec#*:}" | tr -d '\040\011\012\015' )
@@ -677,9 +719,7 @@ valid='0-9a-z'
 	done < <(printf '%s\n' "$1")
 	}
 
-	#######################################
-	#checks if the authoritative ns is digable
-	#######################################
+	#determines which of the 'digable authoritative name servers' will be queried (either 8.8.8.8 or one of the IP under a valid authoritative name server) when the script does a special check for MX records
 	nstqfunc () {
 	xnsxx=$( nsfunction "$1" "x" )
 
@@ -707,7 +747,7 @@ valid='0-9a-z'
 	nstoquery=$( nstqfunc "$nsxx")
 	nscheck=$( nscheckfunc "$nsxx" | gawk '!seen[$0]++' | tr -d '\040\011\012\015' )
 	else
-	echo "wow"
+	echo "you should never see this, if you did, and you are not looking at the source code, something bad happened during the execution of the script."
 	fi
 
 	if [[ "$nscheck" = "y" ]]; then
