@@ -123,15 +123,16 @@ else
 		then
 			zyxdvc0=$($zyxwhois $domain  -h whois.iana.org 2>&1)
 			zyxdvc1=$(echo "$zyxdvc0" | sed  '1,2d' )
-			zyxdvc="${zyxdvc1:0:9}"
+			zyxdvc=${zyxdvc1:0:9}
 		fi
 
 		trywis0=$(echo "$zyx0" | grep -F -i -e "[Querying" | sort -u | tr -d '\[\] ' )
-		trywis="${trywis0#*Querying}"
+		trywis=${trywis0#*Querying}
 
 	elif [[ $whoisprog = 'whois' ]]
 	then
-		zyx=$(echo "$($zyxwhois $domain 2>&1)" | sed -e '1,/Query string:/d' | sed -n '1!p' )
+		zyx0=$($zyxwhois $domain 2>&1)
+		zyx=$(echo "$zyx0" | sed -e '1,/Query string:/d' | sed -n '1!p' )
 		trywis0=$(echo "$zyx0" | grep -i -e "Using server" | sort -u )
 		trywisx=${trywis0#*Using server }
 		trywis=${trywisx%?}
