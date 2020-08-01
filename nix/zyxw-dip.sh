@@ -86,7 +86,7 @@ echo "$progcheckresult"
 exit 1
 fi
 
-#changes all uppercase letters of the input domain to lowercase
+#changes all uppercase letters of the input domain to lowercase.
 domain=$(echo $1 | gawk '{print tolower($0)}' )
 
 #more info trigger: if -f is added after the domain, more info will be provided
