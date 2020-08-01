@@ -6,7 +6,7 @@
 if [ $1 = 'help' ]; then
 echo "
 
-This is a special domain check tool, the script is basically the command line version of the 'dip.zyx' scriptP
+This is a special domain check tool, the script is basically the command line version of the 'dip.zyx' script
 from  https://github.com/zyxrhythm/zyxw.
 
         -> To perform a simple domain check, the syntax is as follows:
@@ -25,20 +25,20 @@ clear && echo -en "\e[3J"
 #determines if whois or jwhois is installed
 whoisprogtest=$(if [[ -e /usr/bin/whois ]] && [[ ! -d /usr/bin/whois ]] && [[ ! -e /usr/bin/jwhois ]]; then echo 'whois'; else echo 'jwhois'; fi )
 
-#if jwhois is installed, the script will use 'whois -n' for whois lookups
+#if jwhois is installed, will use 'whois -n' for whois lookups
 #the -n flag 'disable features that redirect queries from one server to another'
 if [[ $whoisprogtest = 'jwhois' ]]; then
 whoisprog='jwhois'
 zyxwhois="whois -n"
 
-#if whois is installed, the script will use 'whois --verbose'
+#if whois is installed, will use 'whois --verbose'
 #the --verbose flag will print the whois server used on the result
 elif [[ $whoisprogtest = 'whois' ]]; then
 whoisprog='whois'
 zyxwhois="whois --verbose"
 
 else
-echo -e "\nA whois program not installed.\n"
+echo -e "\nwhois program not installed.\n"
 exit 1
 fi
 
@@ -46,13 +46,13 @@ fi
 #the scipt uses which  command to detemine if other necessary programs are installed on the host
 if [[ ! -e /usr/bin/which ]] && [[ ! -d /usr/bin/which ]]
 then
-	echo -e "\n which command not found. please install which."
+	echo -e "\nwhich command not found. please install which."
 fi
 
 #list of program that needs to be installed
 proglist=$( echo -e "dig\ngawk\nsed\nnslookup")
 
-#checks all programs on the list are installed
+#checks if all programs on $proglist are installed
 progcheckfunc (){
 while IFS= read prog
 do
@@ -68,21 +68,20 @@ done < <(echo "$1" )
 
 pcresult=$(progcheckfunc "$proglist" )
 
-#terminates the script if one of the
+#terminates the script if one of the pcresult is not blank, idicating that a program is missing
 if [[ ! -z $pcresult ]]
 then
 echo "$pcresult"
 exit 1
 fi
 
-#chenges all uppercase letters of the input domain lowercase
+#changes all uppercase letters of the input domain to lowercase
 domain=$(echo $1 | gawk '{print tolower($0)}' )
 
 #more info trigger: if -f is added after the domain, more info will be provided
 #this in particular will make the nsfunction resolve the authoritative name server to their ip address and check if each server is 'digable'
 if [[ $2 = '-f' ]]; then checknsrb="y"; else checknsrb="n"; fi
 
-#checks if $1 is empty
 if [[ -z $domain ]]; then
 echo -e "\nInvalid Input: Empty.\n"
 exit 1
@@ -93,7 +92,7 @@ else
 	domain="${domain#*//}"
 	fi
 
-	#checks if the input domain is a valid domain, by checking the first and last character, making sure that the domain starts with only alphanumeric chars, and ends in a letter
+	#further checks if the input domain is a valid domain, by checking the first and last character, making sure that the domain starts with only alphanumeric chars, and ends in a letter
 	validstart='0-9a-z'
 	validend='a-z'
 	if [[ ${domain:0:1} =~ [^$validstart] ]] || [[ ${domain: -1} =~ [^$validend] ]]; then
@@ -121,8 +120,7 @@ else
 
 	elif [[ $whoisprog = 'whois' ]]
 	then
-		zyx0=$($zyxwhois $domain 2>&1)
-		zyx=$(echo "$zyx0" | sed -e '1,/Query string:/d' | sed -n '1!p' )
+		zyx=$(echo "$($zyxwhois $domain 2>&1)" | sed -e '1,/Query string:/d' | sed -n '1!p' )
 		trywis0=$(echo "$zyx0" | grep -i -e "Using server" | sort -u )
 		trywisx=${trywis0#*Using server }
 		trywis=${trywisx%?}
@@ -426,11 +424,11 @@ else
 		mxr1=$(echo  $line | cut -f2 -d" ")
 		mxr1a=$(echo $line | cut -f1 -d" ")
 
-			if [[ $checknsrb = "n" ]] || [[ $checknsrb = "N" ]]; then
+			if [[ $checknsrb = "n" ]]; then
 			mxr2=$(dig A +short "$mxr1" @"$mxrtqns" 2>/dev/null )
 			mxrc=$( dig +noall +answer ANY "$mxr1" @8.8.8.8 2>/dev/null )
 
-            elif [[ $checknsrb = "y" ]] || [[ $checknsrb = "Y" ]]; then
+            elif [[ $checknsrb = "y" ]]; then
 			mxr2=$(dig A +short "$mxr1" @8.8.8.8 2>/dev/null )
 			mxrc=$( dig ANY +noall +answer "$mxr1" @8.8.8.8 2>/dev/null )
 
@@ -561,7 +559,7 @@ else
 	# END OF FUNCTION HALL
 	#=====================
 
-	#domain validity check -if  by checking the first 9 characters on the raw whois data
+	#domain validity check by checking the first 9 characters on the raw whois data
 	dvc=$(echo "${zyx:0:9}" |  gawk '{print tolower($0)}' | tr -d '\040\011\012\015')
 
 	if [[ $dvc = 'domainno' ]] || [[ $dvc = 'nomatch' ]] || [[ $dvc = 'notfound' ]] || [[ $dvc = 'nodataf' ]] || [[ $dvc = 'nowhois' ]] || [[ $dvc = 'thisdoma' ]] || [[ $dvc = 'nom' ]] || [[ $dvc = 'invalidq' ]] || [[ $dvc = 'whoisloo' ]] || [[ $dvc = 'theregis' ]] || [[ $dvc = 'connect' ]] || [[ $dvc = 'available' ]] || [[ $dvc = ">>>domai" ]] || [[ $dvc = "connect:" ]] || [[ $dvc = 'errorth' ]] || [[ $dvc = 'noinform' ]] || [[ $dvc = 'thequeri' ]]; then
