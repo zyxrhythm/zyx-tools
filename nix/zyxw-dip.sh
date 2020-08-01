@@ -6,7 +6,7 @@
 if [ $1 = 'help' ]; then
 echo "
 
-This is a special domain check tool, the script is basically the command line version of the 'dip.zyx' script 
+This is a special domain check tool, the script is basically the command line version of the 'dip.zyx' scriptP
 from  https://github.com/zyxrhythm/zyxw.
 
         -> To perform a simple domain check, the syntax is as follows:
@@ -16,7 +16,7 @@ from  https://github.com/zyxrhythm/zyxw.
         -> For full domain check:
 
         z github.com -f
-	
+
 "
 else
 
@@ -45,7 +45,7 @@ fi
 #check if which command is installed
 #the scipt uses which  command to detemine if other necessary programs are installed on the host
 if [[ ! -e /usr/bin/which ]] && [[ ! -d /usr/bin/which ]]
-then 
+then
 	echo -e "\n which command not found. please install which."
 fi
 
@@ -59,7 +59,7 @@ do
 	if [[ ! -z $prog ]]
 	then
 		if [[ $(which $prog > /dev/null 2>&1; echo $? ) -gt 0 ]]
-		then 
+		then
 			echo $prog not installed. please install $prog.
 		fi
 	fi
@@ -68,7 +68,7 @@ done < <(echo "$1" )
 
 pcresult=$(progcheckfunc "$proglist" )
 
-#terminates the script if one of the 
+#terminates the script if one of the
 if [[ ! -z $pcresult ]]
 then
 echo "$pcresult"
@@ -132,14 +132,14 @@ else
 	exit 1
 
 	fi
-	
+
 	#gets the authoritative name servers from the raw whois lookup data
 	nsxx=$(echo "$zyx" | grep -i -e 'Name server:' )
-	
+
 	#checks if the domain resolves to an IP address or just a CNAME
 	cnamec=$(dig A +noall +answer $domain)
 	cnamec0=$(dig CNAME +noall +answer $domain)
-	
+
 	if [[ -z $( echo "$cnamec $cnamec0" | grep "IN.CNAME" ) ]]; then
 	cnc="n"
 	else
@@ -165,9 +165,9 @@ else
 	echo "${line#*#}"
 	done < <(printf '%s\n' "$1")
 	}
-	
+
 	#Name Server Function:
-	#this will extract the authortative name servers from the whois data, and if $2= "-f" the function will check if each name server resolves to an IP address then to determine if the authoritative nameserver is 'digable' the the  function will  attempt to dig records from the  nameservers 
+	#this will extract the authortative name servers from the whois data, and if $2= "-f" the function will check if each name server resolves to an IP address then to determine if the authoritative nameserver is 'digable' the the  function will  attempt to dig records from the  nameservers
 	nsfunction () {
 	if [[ -z $2 ]] && [[ $checknsrb = "y" ]]; then
 	echo -e "Name Servers:\n"
@@ -274,13 +274,13 @@ else
 	fi
 	}
 
-	#A Record Function: 
-	#dig the A records under a domain name 
-	#detemine if the each IP address is really an IP address using regex 
+	#A Record Function:
+	#dig the A records under a domain name
+	#detemine if the each IP address is really an IP address using regex
 	#check if the IP is one of those reserved IP`s
 	#checks if the domain resolves to just a CNAME or the domain does not resolve to an IP address at all
 	#query whois with each IP found, and the name of organization responsible for the IP address will be extracted from the result
-	
+
 	arfunction () {
 
 	cnchk=$( dig CNAME $domain @8.8.8.8 )
@@ -371,13 +371,13 @@ else
 	fi
 	}
 
-	#MX Record Function: 
-	#dig the all MX records under a domain name 
+	#MX Record Function:
+	#dig the all MX records under a domain name
 	#detemine if the each MX resolves to an IP address
-	#check if the IP address is really an IP addres using regex 
+	#check if the IP address is really an IP addres using regex
 	#check if the IP is one of those reserved IPs
 	#detemine whether the MX record is setup properly
-	
+
 	mrfunction () {
 
 	if [[ -z $2 ]]; then
