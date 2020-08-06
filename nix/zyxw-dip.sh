@@ -87,7 +87,7 @@ exit 1
 fi
 
 #changes all uppercase letters of the input domain to lowercase.
-domain=$(echo $1 | gawk '{print tolower($0)}' )
+domain=$(echo $1 | awk '{print tolower($0)}' )
 
 #more info trigger: if -f is added after the domain, more info will be provided
 #this in particular will make the nsfunction resolve the authoritative name server to their ip address and check if each server is 'digable'
@@ -119,7 +119,7 @@ else
 		zyx0=$($zyxwhois $domain 2>&1)
 		zyx=$(echo "$zyx0" | sed  '1,2d' )
 
-		if [[ $(echo "${zyx:0:9}" | gawk '{print tolower($0)}' | tr -d '\040\011\012\015' ) = "nomatch" ]]
+		if [[ $(echo "${zyx:0:9}" | awk '{print tolower($0)}' | tr -d '\040\011\012\015' ) = "nomatch" ]]
 		then
 			zyxdvc0=$($zyxwhois $domain  -h whois.iana.org 2>&1)
 			zyxdvc1=$(echo "$zyxdvc0" | sed  '1,2d' )
@@ -189,7 +189,7 @@ else
 	echo -e "\n++++++++++++++++++++++++++"
 
 	while IFS= read -r line; do
-   	nsr1=$( echo "${line#*:}" | tr -d '\040\011\012\015' | gawk '{print tolower($0)}' )
+   	nsr1=$( echo "${line#*:}" | tr -d '\040\011\012\015' | awk '{print tolower($0)}' )
    	nsr2=$(dig a +short "$nsr1" @8.8.8.8 2>/dev/null )
    	nscx=$( echo "$( dig a +short $domain @$nsr2 2>/dev/null )" | tr -d '\040\011\012\015' )
 
@@ -299,7 +299,7 @@ else
 	arff="$1"
 
 	elif [[ $2 = 'x' ]]; then
-	artqns=$( echo "$1" | gawk '{print tolower($0)}' )
+	artqns=$( echo "$1" | awk '{print tolower($0)}' )
 	arff=$(dig a +short $domain @$artqns )
 
 	else
@@ -394,7 +394,7 @@ else
 	mxrff="$1"
 
 	elif [[ $2 = "x" ]]; then
-	mxrtqns=$( echo "$1" | gawk '{print tolower($0)}' )
+	mxrtqns=$( echo "$1" | awk '{print tolower($0)}' )
 	mxrff=$(dig mx +short $domain @$mxrtqns | sort -n )
 
     elif [[ $2 = "y" ]]; then
@@ -572,7 +572,7 @@ else
 	#=====================
 
 	#domain validity check by checking the first 9 characters on the raw whois data
-	dvc=$(echo "${zyx:0:9}" |  gawk '{print tolower($0)}' | tr -d '\040\011\012\015')
+	dvc=$(echo "${zyx:0:9}" |  awk '{print tolower($0)}' | tr -d '\040\011\012\015')
 
 	if [[ $dvc = 'domainno' ]] || [[ $dvc = 'nomatch' ]] || [[ $dvc = 'notfound' ]] || [[ $dvc = 'nodataf' ]] || [[ $dvc = 'nowhois' ]] || [[ $dvc = 'thisdoma' ]] || [[ $dvc = 'nom' ]] || [[ $dvc = 'invalidq' ]] || [[ $dvc = 'whoisloo' ]] || [[ $dvc = 'theregis' ]] || [[ $dvc = 'connect' ]] || [[ $dvc = 'available' ]] || [[ $dvc = ">>>domai" ]] || [[ $dvc = "connect:" ]] || [[ $dvc = 'errorth' ]] || [[ $dvc = 'noinform' ]] || [[ $dvc = 'thequeri' ]]; then
 
@@ -755,7 +755,7 @@ else
 	nscheck="x"
 	elif [[ $checknsrb = "y" ]]; then
 	nstoquery=$( nstqfunc "$nsxx")
-	nscheck=$( nscheckfunc "$nsxx" | gawk '!seen[$0]++' | tr -d '\040\011\012\015' )
+	nscheck=$( nscheckfunc "$nsxx" | awk '!seen[$0]++' | tr -d '\040\011\012\015' )
 	else
 	echo "you should never see this, if you did, and you are not looking at the source code, something bad happened during the execution of the script."
 	fi
@@ -810,7 +810,7 @@ else
 	ar=$(dig +short $domain @8.8.8.8)
 	arfrgov=$( arfunction "$ar" )
 	mrfrgov=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y')
-	zyx0=$(echo "$zyx" | gawk '/DOTGOV WHOIS Server ready/{flag=1;next}/>>>/{flag=0}flag' )
+	zyx0=$(echo "$zyx" | awk '/DOTGOV WHOIS Server ready/{flag=1;next}/>>>/{flag=0}flag' )
 
 	echo -e "\n\n$zyx0\n__________________________\n\n$arfrgov\n__________________________\n\n$mrfrgov\n__________________________\n"
 	exit 0
@@ -901,7 +901,7 @@ else
 	#special whois result trim for UK TLDs
 	uk)
 	zyx=$($zyxwhois $domain)
-	zyxuk0=$(echo "$zyx" | gawk '/Registrar:/{flag=1;next}/WHOIS lookup made at/{flag=0}flag' )
+	zyxuk0=$(echo "$zyx" | awk '/Registrar:/{flag=1;next}/WHOIS lookup made at/{flag=0}flag' )
 	arfrctuk=$( arfunction "$(dig +short $domain @8.8.8.8 )" )
 	mrfrctuk=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y' )
 	echo -e "\nDomain name: $domain\n\nRegistrar:\n$zyxuk0\n__________________________\n\n$arfrctuk\n__________________________\n\n$mrfrctuk\n__________________________\n\nRaw whois result below:\n\n$zyx\n"
@@ -911,7 +911,7 @@ else
 	#special whois result trim for EU TLDs
 	eu)
 	zyx=$($zyxwhois $domain)
-	zyxeu0=$(echo "$zyx" | gawk '/Domain:/{flag=1;next}/Keys:/{flag=0}flag' )
+	zyxeu0=$(echo "$zyx" | awk '/Domain:/{flag=1;next}/Keys:/{flag=0}flag' )
 
 	arfrcteu=$( arfunction "$(dig +short $domain @8.8.8.8 )" )
 	mrfrcteu=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y' )
