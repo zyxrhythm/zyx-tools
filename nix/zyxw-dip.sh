@@ -3,7 +3,7 @@
 #And it can be downloaded at https://github.com/zyxrhythm/zyx-tools/
 #############################################
 
-if [ $1 = 'help' ]; then
+if [ "$1" = 'help' ]; then
 echo "
 
 This is a special domain check tool, the script is basically the command line version of the 'dip.zyx' script
@@ -65,13 +65,13 @@ proglist=$( echo -e "dig\ngawk\nsed\nnslookup")
 
 #checks if all programs on $proglist are installed
 progcheckfunc (){
-while IFS= read prog
+while IFS= read -r prog
 do
 	if [[ ! -z $prog ]]
 	then
-		if [[ $(which $prog > /dev/null 2>&1; echo $? ) -gt 0 ]]
+		if [[ $(which "$prog" > /dev/null 2>&1; echo $? ) -gt 0 ]]
 		then
-			echo $prog not installed. please install $prog.
+			echo "$prog" not installed. please install "$prog".
 		fi
 	fi
 done < <(echo "$1" )
@@ -87,7 +87,7 @@ exit 1
 fi
 
 #changes all uppercase letters of the input domain to lowercase.
-domain=$(echo $1 | awk '{print tolower($0)}' )
+domain=$(echo "$1" | awk '{print tolower($0)}' )
 
 #more info trigger: if -f is added after the domain, more info will be provided
 #this in particular will make the nsfunction resolve the authoritative name server to their ip address and check if each server is 'digable'
@@ -116,12 +116,12 @@ else
 	#extracts the registry whois server fromt the whois lookup depending on the whois program installed
 	if [[ $whoisprog = 'jwhois' ]]
 	then
-		zyx0=$($zyxwhois $domain 2>&1)
+		zyx0=$($zyxwhois "$domain" 2>&1)
 		zyx=$(echo "$zyx0" | sed  '1,2d' )
 
 		if [[ $(echo "${zyx:0:9}" | awk '{print tolower($0)}' | tr -d '\040\011\012\015' ) = "nomatch" ]]
 		then
-			zyxdvc0=$($zyxwhois $domain  -h whois.iana.org 2>&1)
+			zyxdvc0=$($zyxwhois "$domain"  -h whois.iana.org 2>&1)
 			zyxdvc1=$(echo "$zyxdvc0" | sed  '1,2d' )
 			zyxdvc=${zyxdvc1:0:9}
 		fi
@@ -131,7 +131,7 @@ else
 
 	elif [[ $whoisprog = 'whois' ]]
 	then
-		zyx0=$($zyxwhois $domain 2>&1)
+		zyx0=$($zyxwhois "$domain" 2>&1)
 		zyx=$(echo "$zyx0" | sed -e '1,/Query string:/d' | sed -n '1!p' )
 		trywis0=$(echo "$zyx0" | grep -i -e "Using server" | sort -u )
 		trywisx=${trywis0#*Using server }
@@ -147,8 +147,8 @@ else
 	nsxx=$(echo "$zyx" | grep -i -e 'Name server:' )
 
 	#checks if the domain resolves to an IP address or just a CNAME
-	cnamec=$(dig A +noall +answer $domain)
-	cnamec0=$(dig CNAME +noall +answer $domain)
+	cnamec=$(dig A +noall +answer "$domain")
+	cnamec0=$(dig CNAME +noall +answer "$domain")
 
 	if [[ -z $( echo "$cnamec $cnamec0" | grep "IN.CNAME" ) ]]; then
 	cnc="n"
@@ -191,7 +191,7 @@ else
 	while IFS= read -r line; do
    	nsr1=$( echo "${line#*:}" | tr -d '\040\011\012\015' | awk '{print tolower($0)}' )
    	nsr2=$(dig a +short "$nsr1" @8.8.8.8 2>/dev/null )
-   	nscx=$( echo "$( dig a +short $domain @$nsr2 2>/dev/null )" | tr -d '\040\011\012\015' )
+   	nscx=$( echo "$( dig a +short "$domain" @"$nsr2" 2>/dev/null )" | tr -d '\040\011\012\015' )
 
    		if [[ -z "$nsr2" ]]; then
 		nsipc="null"
@@ -207,8 +207,8 @@ else
 		if (( $(grep -c . <<<"$nsr2") > 1)); then
 
 			while IFS= read -r line1; do
-   			nsa0=$($zyxwhois $line1 )
-			nscx2=$( echo "$( dig a +short $domain @$line1 )" | tr -d '\040\011\012\015' )
+   			nsa0=$($zyxwhois "$line1" )
+			nscx2=$( echo "$( dig a +short "$domain" @"$line1" )" | tr -d '\040\011\012\015' )
 
 				if [[ "${nscx2:0:2}" = ";;" ]]; then
    				nsipc1="xd"
@@ -293,18 +293,18 @@ else
 
 	arfunction () {
 
-	cnchk=$( dig CNAME $domain @8.8.8.8 )
+	cnchk=$( dig CNAME "$domain" @8.8.8.8 )
 
 	if [[ -z $2 ]]; then
 	arff="$1"
 
 	elif [[ $2 = 'x' ]]; then
 	artqns=$( echo "$1" | awk '{print tolower($0)}' )
-	arff=$(dig a +short $domain @$artqns )
+	arff=$(dig a +short "$domain" @"$artqns" )
 
 	else
 	artqns="8.8.8.8"
-	arff=$(dig a +short $domain @$artqns )
+	arff=$(dig a +short "$domain" @$artqns )
 	fi
 
 	if (( $(grep -c . <<<"$arff") > 1)); then
@@ -333,13 +333,13 @@ else
 				else
 				rchkx="rr"
 				alinex="$line"
-   				ar0=$($zyxwhois $alinex )
+   				ar0=$($zyxwhois "$alinex" )
 				fi
 
-			elif [[ $cnc = "p" ]] && [[ ! -z "$(dig +short A $line )" ]]; then
-			ealinex=$(dig a +short $line )
+			elif [[ $cnc = "p" ]] && [[ ! -z "$(dig +short A "$line" )" ]]; then
+			ealinex=$(dig a +short "$line" )
 			alinex="$ealinex"
-			ar0=$($zyxwhois $alinex )
+			ar0=$($zyxwhois "$alinex" )
 			rchk="CNAME"
 
             else
@@ -363,7 +363,7 @@ else
 			echo -e "\n  $alinex --- [ RESERVED IP ] \n"
 
 			elif [[ $rchk = "A" ]] && [[ $rchkx = "rr" ]]; then
-			echo -e "\n  $alinex --- $( echo ${arx#*:} | awk '{$2=$2};1' ) "
+			echo -e "\n  $alinex --- $( echo "${arx#*:}" | awk '{$2=$2};1' ) "
 
 			elif [[ $rchk = "CNAME" ]]; then
 			echo -e "\n $line --- [ CNAME ]"
@@ -395,15 +395,15 @@ else
 
 	elif [[ $2 = "x" ]]; then
 	mxrtqns=$( echo "$1" | awk '{print tolower($0)}' )
-	mxrff=$(dig mx +short $domain @$mxrtqns | sort -n )
+	mxrff=$(dig mx +short "$domain" @"$mxrtqns" | sort -n )
 
     elif [[ $2 = "y" ]]; then
 	mxrtqns="8.8.8.8"
-	mxrff=$(dig mx +short $domain @$mxrtqns | sort -n )
+	mxrff=$(dig mx +short "$domain" @$mxrtqns | sort -n )
 
 	else
 	mxrtqns="8.8.8.8"
-	mxrff=$(dig mx +short $domain @$mxrtqns | sort -n )
+	mxrff=$(dig mx +short "$domain" @$mxrtqns | sort -n )
 	fi
 
 	if (( $(grep -c . <<<"$mxrff") > 1)); then
@@ -433,8 +433,8 @@ else
 		fi
 
 		while IFS= read -r line; do
-		mxr1=$(echo  $line | cut -f2 -d" ")
-		mxr1a=$(echo $line | cut -f1 -d" ")
+		mxr1=$(echo  "$line" | cut -f2 -d" ")
+		mxr1a=$(echo "$line" | cut -f1 -d" ")
 
 			if [[ $checknsrb = "n" ]]; then
 			mxr2=$(dig A +short "$mxr1" @"$mxrtqns" 2>/dev/null )
@@ -458,7 +458,7 @@ else
 			echo -e "$mxr1a $mxr1 \n\nMX Record Misconfigured ( Case 1 ), \nThe hostname does not resolve to an A/CNAME record.\n\n"
 
 			elif [[ $mxcnamechk = "y" ]] && [[ $mxachk = "x" ]]; then
-			mxabc=$( dig A +short "$(dig cname $mxr1 +short 2>/dev/null )" 2>/dev/null )
+			mxabc=$( dig A +short "$(dig cname "$mxr1" +short 2>/dev/null )" 2>/dev/null )
 
 				if [[ -z "$mxabc" ]]; then
     			echo -e "$mxr1a $mxr1 \n \nMX Record Misconfigured ( Case 2a ), \nThe hostname resolves to CNAME that does not resolve to an IP address. \n";
@@ -471,7 +471,7 @@ else
 				fi
 
 			elif [[ $mxcnamechk = "y" ]] && [[ $mxachk = "y" ]]; then
-			ansfmxf=$( echo "$(dig NS $domain @8.8.8.8 +short )" | head -n 1)
+			ansfmxf=$( echo "$(dig NS "$domain" @8.8.8.8 +short )" | head -n 1)
 			mxipc="null"
 			echo -e "$mxr1a $mxr1 \n \nMX Record Possibly Misconfigured ( Case 3 ), \nThe hostname resolves to a combination of CNAME/s and A record/s: \n \n To see all records, \ntry 'dig ANY ${mxr1%?} @${ansfmxf%?}' \n\n"
 
@@ -482,7 +482,7 @@ else
 		if (( $(grep -c . <<<"$mxr2") > 1)); then
 
 			while IFS= read -r linex; do
-   			mxa1=$( echo "$($zyxwhois $linex )" | grep -i -e "OrgName:" )
+   			mxa1=$( echo "$($zyxwhois "$linex" )" | grep -i -e "OrgName:" )
 
    				if [[ -z "$mxa1" ]]; then
    				mxa2=$( echo "$mxa0" | grep -i -e "NetName:" )
@@ -595,10 +595,10 @@ else
 
 	else
 
-	tld=$( echo $domain | rev | cut -d "." -f1 | rev )
+	tld=$( echo "$domain" | rev | cut -d "." -f1 | rev )
 
 		if [[ $tld = "shop" ]]; then
-		zyx=$(whois $domain -h whois.nic.shop 2>&1 )
+		zyx=$(whois "$domain" -h whois.nic.shop 2>&1 )
 		fi
 
 	whoisservergrep=$(echo "$zyx" | grep -i -e "REGISTRAR WHOIS SERVER:" | sort -u )
@@ -618,14 +618,14 @@ else
 			whoisserver=$(echo "$whoisservergrep" | cut -f2 -d":" | tr -d '\040\011\012\015' )
 			fi
 
-		zyx2=$(whois $domain -h $whoisserver 2>&1 )
+		zyx2=$(whois "$domain" -h "$whoisserver" 2>&1 )
 		fi
 
 	#REESE
 	rese=$(echo "$zyx2" | grep -i -e "reseller:")
 	reseller=$( echo "${rese#*:}" | awk '{$2=$2};1')
 
-	resx=$( echo $reseller | tr -d '\040\011\012\015' )
+	resx=$( echo "$reseller" | tr -d '\040\011\012\015' )
 	if [[ -z $resx ]] || [[ ${resx:0:1} =~ [^$validchars] ]]; then
     reese='None'
 	else
@@ -720,7 +720,7 @@ else
 	nscheckfunc () {
 	while IFS= read -r linec; do
 	dqns=$( echo "${linec#*:}" | tr -d '\040\011\012\015' )
-		if [[ -z "$( dig a +short $dqns @8.8.8.8 )" ]]; then
+		if [[ -z "$( dig a +short "$dqns" @8.8.8.8 )" ]]; then
         nsxcr="y"
     	else
     	nsxcr="x"
@@ -735,10 +735,10 @@ else
 
 	while IFS= read -r xline; do
 	xcount=$(( $xcount + 1 ))
-	nssfa=$( echo ${xline#*:} | tr -d '\040\011\012\015' )
+	nssfa=$( echo "${xline#*:}" | tr -d '\040\011\012\015' )
 	arayko[$xcount]="$nssfa"
 	linecheck=$( dig a +short "${arayko[$xcount]}" @8.8.8.8 )
-	lcdc=$( dig +short a example.com @${arayko[$xcount]} | tr -d '\040\011\012\015' )
+	lcdc=$( dig +short a example.com @"${arayko[$xcount]}" | tr -d '\040\011\012\015' )
 		if [[ -z "$linecheck" ]] && [[ -z "${arayko[$(( $xcount - 1 ))]}" ]]; then
         xqns="8.8.8.8"
 		elif [[ -z "$linecheck" ]] || [[ "${lcdc:0:2}" = ";;" ]]; then
@@ -762,18 +762,18 @@ else
 
 	if [[ "$nscheck" = "y" ]]; then
 	ns0frgt=$( nsfunction "$nsxx" "z" "\n")
-	arfrgt=$( arfunction "$(dig +short $domain @8.8.8.8 )" )
+	arfrgt=$( arfunction "$(dig +short "$domain" @8.8.8.8 )" )
 	arecho=$(echo -e "Authoritative Name servers invalid.\nThe following is/are from 8.8.8.8:\n$arfrgt" )
-	mrfrgt=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" )
+	mrfrgt=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" )
 	mxrecho=$( echo -e "Authoritative Name servers invalid.\nThe following is/are from 8.8.8.8:\n$mrfrgt")
 
 	echo -e "$ns0frgt\n__________________________\n\n$arecho\n__________________________\n$mxrecho\n__________________________\n"
 
 	elif [[ "$nscheck" = "yx" ]]; then
 	ns0frgt=$( nsfunction "$nsxx" "z" "\n")
-	arfrgt=$( arfunction "$(dig +short $domain @8.8.8.8 )" )
+	arfrgt=$( arfunction "$(dig +short "$domain" @8.8.8.8 )" )
 	arecho=$(echo -e "Critical issue found on 1 or more authoritative name server.\nQueried 8.8.8.8 instead.\n$arfrgt")
-	mrfrgt=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" )
+	mrfrgt=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" )
 	mxrecho=$( echo -e "Critical issue found on 1 or more authoritative name server.\nQueried 8.8.8.8 instead.\n$mrfrgt")
 
 	echo -e "$ns0frgt\n__________________________\n$arecho\n__________________________\n$mxrecho\n__________________________\n"
@@ -795,9 +795,9 @@ else
 
 	edu)
 
-	zyx=$($zyxwhois $domain)
-	arfredu=$( arfunction "$(dig +short $domain @8.8.8.8 )" )
-	mrfredu=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y' )
+	zyx=$($zyxwhois "$domain")
+	arfredu=$( arfunction "$(dig +short "$domain" @8.8.8.8 )" )
+	mrfredu=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" 'y' )
 
 	echo "\n${zyx#*-------------------------------------------------------------}\n__________________________\n\n$arfredu\n__________________________\n\n$mrfredu\n__________________________\n\n${zyx%-------------------------------------------------------------*}\n\n"
 
@@ -806,10 +806,10 @@ else
 
 	gov)
 
-	zyx=$($zyxwhois $domain)
-	ar=$(dig +short $domain @8.8.8.8)
+	zyx=$($zyxwhois "$domain")
+	ar=$(dig +short "$domain" @8.8.8.8)
 	arfrgov=$( arfunction "$ar" )
-	mrfrgov=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y')
+	mrfrgov=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" 'y')
 	zyx0=$(echo "$zyx" | awk '/DOTGOV WHOIS Server ready/{flag=1;next}/>>>/{flag=0}flag' )
 
 	echo -e "\n\n$zyx0\n__________________________\n\n$arfrgov\n__________________________\n\n$mrfrgov\n__________________________\n"
@@ -817,8 +817,8 @@ else
 	;;
 
 	mil)
-	arfrmil=$( arfunction "$(dig +short $domain @8.8.8.8 )" )
-	mrfrmil=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y' )
+	arfrmil=$( arfunction "$(dig +short "$domain" @8.8.8.8 )" )
+	mrfrmil=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" 'y' )
 
 	echo -e "\nInput: $domain\n\n\nThis TLD has no whois server.\n\n.mil domains are exclusively for the use of the United States Department of Defense\n\nThe domain name mil is the sponsored top-level domain (sTLD) in the Domain Name System of the Internet for the United States Department of Defense and its subsidiary or affiliated organizations. More info at https://en.wikipedia.org/wiki/.mil\n\n__________________________\n\n$arfrmil\n__________________________\n\n$mrfrmil\n__________________________\n"
 	exit 0
@@ -826,11 +826,11 @@ else
 
 	$tldlist0)
 
-	zyx=$($zyxwhois $domain)
+	zyx=$($zyxwhois "$domain")
 
 	#dig A and MX with minimal essential output from Google DNS servers
-	arfrct=$( arfunction "$(dig +short $domain @8.8.8.8 )" )
-	mrfrct=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y' )
+	arfrct=$( arfunction "$(dig +short "$domain" @8.8.8.8 )" )
+	mrfrct=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" 'y' )
 
 	echo -e "\nTLD does not have any configured custom result, \nfalling back to raw whois result.\n\n$zyx\n__________________________\n\n$arfrct\n__________________________\n\n$mrfrct\n__________________________"
 
@@ -839,11 +839,11 @@ else
 	#special trimming for AU ccTLDs
 	au)
 
-	zyx=$($zyxwhois $domain )
+	zyx=$($zyxwhois "$domain" )
 
 	#dig A and MX with minimal essential output
-	arfrctau=$( arfunction "$(dig +short $domain @8.8.8.8 )" )
-	mrfrctau=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y' )
+	arfrctau=$( arfunction "$(dig +short "$domain" @8.8.8.8 )" )
+	mrfrctau=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" 'y' )
 
 	if [[ ! -z $( echo "$zyx" | grep -w "WHOIS LIMIT EXCEEDED" ) ]]
 
@@ -873,9 +873,9 @@ else
 	#special trimming for NZ ccTLDs
 	nz)
 
-	zyx=$($zyxwhois $domain)
-	arfrctnz=$( arfunction "$(dig +short $domain @8.8.8.8 )")
-	mrfrctnz=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y' )
+	zyx=$($zyxwhois "$domain")
+	arfrctnz=$( arfunction "$(dig +short "$domain" @8.8.8.8 )")
+	mrfrctnz=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" 'y' )
 
 	registrar=$(echo "$zyx" | grep -i -e "registrar_name:")
 
@@ -900,53 +900,53 @@ else
 
 	#special whois result trim for UK TLDs
 	uk)
-	zyx=$($zyxwhois $domain)
+	zyx=$($zyxwhois "$domain")
 	zyxuk0=$(echo "$zyx" | awk '/Registrar:/{flag=1;next}/WHOIS lookup made at/{flag=0}flag' )
-	arfrctuk=$( arfunction "$(dig +short $domain @8.8.8.8 )" )
-	mrfrctuk=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y' )
+	arfrctuk=$( arfunction "$(dig +short "$domain" @8.8.8.8 )" )
+	mrfrctuk=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" 'y' )
 	echo -e "\nDomain name: $domain\n\nRegistrar:\n$zyxuk0\n__________________________\n\n$arfrctuk\n__________________________\n\n$mrfrctuk\n__________________________\n\nRaw whois result below:\n\n$zyx\n"
 
 	;;
 
 	#special whois result trim for EU TLDs
 	eu)
-	zyx=$($zyxwhois $domain)
+	zyx=$($zyxwhois "$domain")
 	zyxeu0=$(echo "$zyx" | awk '/Domain:/{flag=1;next}/Keys:/{flag=0}flag' )
 
-	arfrcteu=$( arfunction "$(dig +short $domain @8.8.8.8 )" )
-	mrfrcteu=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y' )
+	arfrcteu=$( arfunction "$(dig +short "$domain" @8.8.8.8 )" )
+	mrfrcteu=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" 'y' )
 	echo -e "\nDomain: $domain\n$zyxeu0\n__________________________\n$arfrcteu\n__________________________ \n\n$mrfrcteu\n__________________________\n\nRaw whois result below:\n\n$zyx\n\n"
 	;;
 
 	#special result for .ph ccTLD
 	ph)
-	arfrph=$( arfunction "$(dig +short $domain @8.8.8.8 )" )
-	mrfrph=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y' )
+	arfrph=$( arfunction "$(dig +short "$domain" @8.8.8.8 )" )
+	mrfrph=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" 'y' )
 	echo -e "\nFor the  Whois info of this .ph domain, \nVisit the link below:\n\nhttps://whois.dot.ph/?utf8=%E2%9C%93&search=$domain\n\n__________________________ \n\nDomain: $domain\n__________________________\n\n$arfrph\n__________________________\n\n$mrfrph\n__________________________\n"
 	exit 0
 	;;
 
 	#special result for .sg ccTLD
 	sg)
-	arfrsg=$( arfunction "$(dig +short $domain @8.8.8.8)" )
-	mrfrsg=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y' )
+	arfrsg=$( arfunction "$(dig +short "$domain" @8.8.8.8)" )
+	mrfrsg=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" 'y' )
 	echo -e "\nFor the  Whois info of this .sg domain, \nVisit the link below:\n\nhttps://www.sgnic.sg/domain-search.html?SearchKey=$domain\n\n__________________________ \n\nDomain: $domain\n__________________________ \n\n$arfrsg\n__________________________\n\n$mrfrsg\n__________________________\n"
 	exit 0
 	;;
 
 	#special result for .vn ccTLD
 	vn)
-	arfrvn=$( arfunction "$(dig +short $domain @8.8.8.8 )" )
-	mrfrvn=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" )
+	arfrvn=$( arfunction "$(dig +short "$domain" @8.8.8.8 )" )
+	mrfrvn=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" )
 	echo -e "\nFor the  Whois info of this .vn domain, \nVisit the link below:\n\nhttps://vnnic.vn/en/whois-information?lang=en\n\n__________________________\n\nDomain:$domain\n\n__________________________\n\n$arfrvn\n__________________________ \n\n$mrfrvn\n__________________________\n"
 	exit 0
 	;;
 
 	jp)
-	zyx=$($zyxwhois $domain);
+	zyx=$($zyxwhois "$domain");
 
-	arfrjp=$( arfunction "$(dig +short $domain @8.8.8.8 )" )
-	mrfrjp=$( mrfunction "$(dig mx +short $domain @8.8.8.8 | sort -n )" 'y' )
+	arfrjp=$( arfunction "$(dig +short "$domain" @8.8.8.8 )" )
+	mrfrjp=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" 'y' )
 	echo -e "\n${zyx#*Domain Information:}\n\n__________________________\n\n$arfrjp \n__________________________\n\n$mrfrjp\n__________________________\n\n\nRaw whois result below:\n\n$zyx\n"
 	;;
 
@@ -968,7 +968,7 @@ else
 	tech=$(echo "$zyx2" | grep -i -e "tech .*:")
 
 	if [[ -z "$registrant" ]]; then
-	regwis="$(echo $whoisservergrep | tr -d '\040\011\012\015')"
+	regwis="$(echo "$whoisservergrep" | tr -d '\040\011\012\015')"
 
 	case "$regwis" in
 	"RegistrarWHOISServer:http://api.fastdomain.com/cgi/whois")
