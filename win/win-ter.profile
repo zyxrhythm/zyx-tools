@@ -8,7 +8,7 @@
 {
     "$schema": "https://aka.ms/terminal-profiles-schema",
 
-    "defaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+    "defaultProfile": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
 
     // You can add more global application settings here.
     // To learn more about global settings, visit https://aka.ms/terminal-global-settings
@@ -34,7 +34,7 @@
 			"useAcrylic": true,
 			"foreground": "#00E500",
 			"background": "#000000",
-			"backgroundImage": "C:/Users/zyxrh/Desktop/ZYX/WT/Wallpapers/madara.gif",
+			"backgroundImage": "C:/Users/zyxrh/Desktop/ZYX/WT/Wallpapers/obito.gif",
 			"backgroundImageOpacity" : 0.03,
 			"backgroundImageStrechMode" : "fill",
 			"fontSize": 10,
@@ -43,19 +43,20 @@
         },
         "list":
         [
+		    {
+                // Make changes here to the cmd.exe profile.
+                "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+                "name": "CMD",
+                "commandline": "cmd.exe",
+				"backgroundImage": "C:/Users/zyxrh/Desktop/ZYX/WT/Wallpapers/madara.gif",
+				"startingDirectory" : "C:/Users/zyxrh/Desktop/LAB",
+                "hidden": false
+            },
             {
                 // Make changes here to the powershell.exe profile.
                 "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
                 "name": "PowerShell",
                 "commandline": "powershell.exe",
-				"startingDirectory" : "C:/Users/zyxrh/Desktop/LAB",
-                "hidden": false
-            },
-            {
-                // Make changes here to the cmd.exe profile.
-                "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
-                "name": "CMD",
-                "commandline": "cmd.exe",
 				"startingDirectory" : "C:/Users/zyxrh/Desktop/LAB",
                 "hidden": false
             },
