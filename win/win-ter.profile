@@ -35,7 +35,7 @@
 			"foreground": "#00E500",
 			"background": "#000000",
 			"backgroundImage": "C:/Users/zyxrh/Desktop/ZYX/WT/Wallpapers/obito.gif",
-			"backgroundImageOpacity" : 0.03,
+			"backgroundImageOpacity" : 0.02,
 			"backgroundImageStrechMode" : "fill",
 			"fontSize": 10,
 			"acrylicOpacity": 0.8
@@ -50,6 +50,7 @@
                 "commandline": "cmd.exe",
 				"backgroundImage": "C:/Users/zyxrh/Desktop/ZYX/WT/Wallpapers/madara.gif",
 				"startingDirectory" : "C:/Users/zyxrh/Desktop/LAB",
+				"backgroundImageOpacity" : 0.03,
                 "hidden": false
             },
             {
