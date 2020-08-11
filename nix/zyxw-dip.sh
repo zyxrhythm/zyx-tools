@@ -52,9 +52,9 @@ proglist=$( echo -e "whois\ndig\nawk\nsed\nnslookup")
 
 #checks if all programs on $proglist are installed
 progcheckfunc (){
-while IFS= read prog
+while IFS= read -r prog
 do
-	if [[ ! -z $prog ]]
+	if [[ -n $prog ]]
 	then
 		if [[ $(which "$prog" > /dev/null 2>&1; echo $? ) -gt 0 ]]
 		then
@@ -67,7 +67,7 @@ done < <(echo "$1" )
 progcheckresult=$(progcheckfunc "$proglist" )
 
 #terminates the script if progcheckresult is not blank, idicating that a program is missing
-if [[ ! -z $progcheckresult ]]
+if [[ -n $progcheckresult ]]
 then
 echo "$progcheckresult"
 exit 1
@@ -206,7 +206,7 @@ else
 	while IFS= read -r line; do
    	nsr1=$( echo "${line#*:}" | tr -d '\040\011\012\015' | awk '{print tolower($0)}' )
    	nsr2=$(dig a +short "$nsr1" @8.8.8.8 2>/dev/null )
-   	nscx=$( echo "$( dig a +short "$domain" @"$nsr2" 2>/dev/null )" | tr -d '\040\011\012\015' )
+   	nscx=$( dig a +short "$domain" @"$nsr2" 2>/dev/null | tr -d '\040\011\012\015' )
 
    		if [[ -z "$nsr2" ]]; then
 		nsipc="null"
@@ -223,7 +223,7 @@ else
 
 			while IFS= read -r line1; do
    			nsa0=$($zyxwhois "$line1" )
-			nscx2=$( echo "$( dig a +short "$domain" @"$line1" )" | tr -d '\040\011\012\015' )
+			nscx2=$( dig a +short "$domain" @"$line1" | tr -d '\040\011\012\015' )
 
 				if [[ "${nscx2:0:2}" = ";;" ]]; then
    				nsipc1="xd"
@@ -351,7 +351,7 @@ else
    				ar0=$($zyxwhois "$alinex" )
 				fi
 
-			elif [[ $cnc = "p" ]] && [[ ! -z "$(dig +short A "$line" )" ]]; then
+			elif [[ $cnc = "p" ]] && [[ -n "$(dig +short A "$line" )" ]]; then
 			ealinex=$(dig a +short "$line" )
 			alinex="$ealinex"
 			ar0=$($zyxwhois "$alinex" )
@@ -383,7 +383,7 @@ else
 			elif [[ $rchk = "CNAME" ]]; then
 			echo -e "\n $line --- [ CNAME ]"
 
-			elif [[ ! -z $cnchk ]] && [[ -z $( echo "$rchk" | grep "A") ]]; then
+			elif [[ -n $cnchk ]] && [[ -z $( echo "$rchk" | grep "A") ]]; then
 			echo -e "\nDomain resolves to Oblivion...\nWarning: domain resolves to only a CNAME and nothing more,\nalso the CNAME is invalid / does not resolve to an IP address.\n"
 
 			else
@@ -429,7 +429,7 @@ else
 
 	echo -e "$mxtvar \n"
 
-	tmxrc=$( if [[ -z $( echo "$( dig MX "$domain" @8.8.8.8 2>/dev/null)" | grep -w "IN.MX" ) ]]; then echo "x"; else echo "y"; fi; )
+	tmxrc=$( if [[ -z $( dig MX "$domain" @8.8.8.8 2>/dev/null | grep -w "IN.MX" ) ]]; then echo "x"; else echo "y"; fi; )
 
 	if [[ -z "$mxrff" ]]; then
 	echo -e "No MX record found! \n"
@@ -478,15 +478,15 @@ else
 				if [[ -z "$mxabc" ]]; then
     			echo -e "$mxr1a $mxr1 \n \nMX Record Misconfigured ( Case 2a ), \nThe hostname resolves to CNAME that does not resolve to an IP address. \n";
 
-				elif [[ ! -z "$mxabc" ]]; then
+				elif [[ -n "$mxabc" ]]; then
 				echo -e "$mxr1a $mxr1 \n \nMX Record Configuration ( Case 2b ), \nThe hostname resolves to CNAME:\n"
 
 				else
-				echo "$mxr1a $mxr1 \n \nYou should not ever see this! \nSince you did, please contact the administrator.\n"
+				echo -e "$mxr1a $mxr1 \n \nYou should not ever see this! \nSince you did, please contact the administrator.\n"
 				fi
 
 			elif [[ $mxcnamechk = "y" ]] && [[ $mxachk = "y" ]]; then
-			ansfmxf=$( echo "$(dig NS "$domain" @8.8.8.8 +short )" | head -n 1)
+			ansfmxf=$( dig NS "$domain" @8.8.8.8 +short | head -n 1)
 			mxipc="null"
 			echo -e "$mxr1a $mxr1 \n \nMX Record Possibly Misconfigured ( Case 3 ), \nThe hostname resolves to a combination of CNAME/s and A record/s: \n \n To see all records, \ntry 'dig ANY ${mxr1%?} @${ansfmxf%?}' \n\n"
 
@@ -497,7 +497,8 @@ else
 		if (( $(grep -c . <<<"$mxr2") > 1)); then
 
 			while IFS= read -r linex; do
-   			mxa1=$( echo "$($zyxwhois "$linex" )" | grep -i -e "OrgName:" )
+			mxa0=$($zyxwhois "$linex" )
+   			mxa1=$( echo "$mxa0" | grep -i -e "OrgName:" )
 
    				if [[ -z "$mxa1" ]]; then
    				mxa2=$( echo "$mxa0" | grep -i -e "NetName:" )
@@ -543,7 +544,7 @@ else
 
    		mxax2=$( echo "$mxa22" | sort -u | head -1 )
 
-			if [[ ! -z "$mxr2" ]]; then
+			if [[ -n "$mxr2" ]]; then
 
    				if [[ "$mxipc" = "null" ]] && [[ $mxachk = "x" ]] && [[ $mxcnamechk = "x" ]]; then
    				echo "Invalid MX Record - Does not Resolve to an IP address!"
@@ -579,7 +580,7 @@ else
 	else
 	extdatex="$extdate"
 	fi
-	daysleft=$( echo $((($(date +%s --date "$extdatex")-$(date +%s))/(3600*24))) )
+	daysleft=$((($(date +%s --date "$extdatex")-$(date +%s))/(3600*24)))
 	echo "$daysleft"
 	}
 	#=====================
@@ -591,7 +592,7 @@ else
 
 	if [[ $dvc = 'domainno' ]] || [[ $dvc = 'nomatch' ]] || [[ $dvc = 'notfound' ]] || [[ $dvc = 'nodataf' ]] || [[ $dvc = 'nowhois' ]] || [[ $dvc = 'thisdoma' ]] || [[ $dvc = 'nom' ]] || [[ $dvc = 'invalidq' ]] || [[ $dvc = 'whoisloo' ]] || [[ $dvc = 'theregis' ]] || [[ $dvc = 'connect' ]] || [[ $dvc = 'available' ]] || [[ $dvc = ">>>domai" ]] || [[ $dvc = "connect:" ]] || [[ $dvc = 'errorth' ]] || [[ $dvc = 'noinform' ]] || [[ $dvc = 'thequeri' ]]; then
 
-	domhv=$( echo "$(nslookup "$domain")" | grep -e 'NXDomain'  )
+	domhv=$( nslookup "$domain" | grep -e 'NXDomain'  )
 		if [[ $( echo "${domain#*.}" | grep -o "\." | wc -l) -gt "0" ]] && [[ -z "$domhv" ]]; then
     	domvarx="- ( A sub domain )"
 		else
@@ -618,7 +619,7 @@ else
 
 	whoisservergrep=$(echo "$zyx" | grep -i -e "REGISTRAR WHOIS SERVER:" | sort -u )
 
-		if [[ ! -z "$whoisservergrep" ]]; then
+		if [[ -n "$whoisservergrep" ]]; then
 
 			if [[ $whoisprog = 'jwhois' ]]; then
 
@@ -641,7 +642,8 @@ else
 	reseller=$( echo "${rese#*:}" | awk '{$2=$2};1')
 
 	resx=$( echo "$reseller" | tr -d '\040\011\012\015' )
-	if [[ -z $resx ]] || [[ ${resx:0:1} =~ [^$validchars] ]]; then
+	validchars='0-9a-z'
+	if [[ -z $resx ]] || ! [[ ${resx:0:1} =~ [^$validchars] ]]; then
     reese='None'
 	else
 	reese="$reseller"
@@ -860,7 +862,7 @@ else
 	arfrctau=$( arfunction "$(dig +short "$domain" @8.8.8.8 )" )
 	mrfrctau=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" 'y' )
 
-	if [[ ! -z $( echo "$zyx" | grep -w "WHOIS LIMIT EXCEEDED" ) ]]
+	if [[ -n $( echo "$zyx" | grep -w "WHOIS LIMIT EXCEEDED" ) ]]
 
 	then
     echo -e "\nThe whois server/s of auDA (AU Domain Administration ) solely responds for whois queries regarding '.au' domains. And like most whois servers out there there is a limit on how many times their server/s will respond to whois queries from an I.P address on a given time. The IP address of this server has reach the said limit, you can either wait for this server to be able to query auDA's whois server/s again, or you can go to https://whois.auda.org.au to get the raw whois information of $domain directly from auDA's web interface.\n__________________________\n$arfrctau\n__________________________\n\n$mrfrctau \n__________________________\n"
@@ -1015,15 +1017,15 @@ else
 	if [[ $checknsrb = 'y' ]]; then
 	echo "-----------------------------"
 
-	if [[ ! -z $registrant ]]; then
+	if [[ -n $registrant ]]; then
 	echo -e "\n[ REGISTRANT: ]\n\n$registrant\n"
 	fi
 
-	if [[ ! -z $admin ]]; then
+	if [[ -n $admin ]]; then
 	echo -e "\n[ ADMIN: ]\n\n$admin\n"
 	fi
 
-	if [[ ! -z $tech ]]; then
+	if [[ -n $tech ]]; then
 	echo -e "\n[ TECH: ]\n\n$tech\n"
 	fi
 
