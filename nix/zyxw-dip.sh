@@ -3,6 +3,9 @@
 #And it can be downloaded at https://github.com/zyxrhythm/zyx-tools/
 #############################################
 
+#ultimate clear screen
+clear && echo -en "\e[3J"
+
 if [ "$1" = 'help' ]; then
 echo "
 
@@ -20,58 +23,42 @@ from  https://github.com/zyxrhythm/zyxw.
 "
 else
 
-clear && echo -en "\e[3J"
-
-#determines if whois or jwhois is installed
-whoisprogtest=$(if [[ -e /usr/bin/whois ]] && [[ ! -d /usr/bin/whois ]] && [[ ! -e /usr/bin/jwhois ]]; then echo 'whois'; else echo 'jwhois'; fi )
-
-#if jwhois is installed, will use 'whois -n' for whois lookups
-#the -n flag 'disable features that redirect queries from one server to another'
-if [[ $whoisprogtest = 'jwhois' ]]; then
-whoisprog='jwhois'
-zyxwhois="whois -n"
-
-#if whois is installed, will use 'whois --verbose'
-#the --verbose flag will print the whois server used on the result
-elif [[ $whoisprogtest = 'whois' ]]; then
-whoisprog='whois'
-zyxwhois="whois --verbose"
-
+#determines if the script is running on a mac or linux
+wherearewe=$(uname -s | tr -d '\012')
+if [[ $wherearewe = Linux ]]
+then
+	wherearewe=Linux
+	whattux=
+elif [[ $wherearewe = Darwin ]]
+then 
+	wherearewe=Mac
 else
-echo -e "\nwhois program not installed.\n"
-exit 1
+	wherearewe=unknown
 fi
+
+#determins what linux
+
 
 #check if which command is installed
-#the scipt uses which  command to detemine if other necessary programs are installed on the host
+#the script needs the  which  command to detemine if other necessary programs are installed on the host
 if [[ ! -e /usr/bin/which ]] && [[ ! -d /usr/bin/which ]]
 then
-	echo -e "\nwhich command not found. please install which."
+	echo -e "\nwhich command not found. Please install which."
+	exit 1
 fi
 
-if [[ $whoisprog = whois && ! -e /etc/whois.conf && ! -d /etc/whois.conf ]]
-then 
-echo -e "\n/etc/whois.conf not found!\n\nPlease create a whois.conf\n\nIf you do not create a whois.conf,\nthe scipt might produce unwanted results or no results at all.\n\nYou can get the recommended whois.conf at:\nhttps://github.com/zyxrhythm/zyx-tools/tree/master/conf\n"
-exit 1
-
-elif [[ $whoisprog = jwhois && ! -e /etc/whois.conf && ! -d /etc/whois.conf ]]
-then 
-echo -e "\n/etc/jwhois.conf not found!\n\nPlease create a whois.conf\n\nIf you do not create a jwhois.conf,\nthe scipt might produce unwanted results or no results at all.\n\nYou can get the recommended jwhois.conf at:\nhttps://github.com/zyxrhythm/zyx-tools/tree/master/conf\n"
-exit 1
-fi
-
-#list of program that needs to be installed
-proglist=$( echo -e "dig\ngawk\nsed\nnslookup")
+#the list of programs that needs to be installed
+proglist=$( echo -e "whois\ndig\nawk\nsed\nnslookup")
 
 #checks if all programs on $proglist are installed
 progcheckfunc (){
-while IFS= read -r prog
+while IFS= read prog
 do
 	if [[ ! -z $prog ]]
 	then
 		if [[ $(which "$prog" > /dev/null 2>&1; echo $? ) -gt 0 ]]
 		then
-			echo "$prog" not installed. please install "$prog".
+			echo "On this $wherearewe -> '$prog' is not installed. Please install $prog."
 		fi
 	fi
 done < <(echo "$1" )
@@ -79,13 +66,41 @@ done < <(echo "$1" )
 
 progcheckresult=$(progcheckfunc "$proglist" )
 
-#terminates the script if one of the pcresult is not blank, idicating that a program is missing
-if [[ ! -z $pcresult ]]
+#terminates the script if progcheckresult is not blank, idicating that a program is missing
+if [[ ! -z $progcheckresult ]]
 then
 echo "$progcheckresult"
 exit 1
 fi
 
+#determines if whois or jwhois is installed
+if [[ -e /usr/bin/whois && ! -d /usr/bin/whois && ! -e /usr/bin/jwhois ]]; 
+then
+	#if whois is installed, will use 'whois --verbose'
+	#the --verbose flag will print the whois server used on the result
+	whoisprog='whois'
+	zyxwhois="whois --verbose"
+else
+	#if jwhois is installed, will use 'whois -n' for whois lookups
+	#the -n flag 'disable features that redirect queries from one server to another'
+	whoisprog='jwhois'
+	zyxwhois="whois -n"
+fi
+
+if [[ $whoisprog = whois && ! -e /etc/whois.conf && ! -d /etc/whois.conf ]]
+then 
+echo -e "\n/etc/whois.conf not found!\n\nPlease create a whois.conf\n\nIf you do not create a whois.conf,\nthe scipt might produce unwanted results or no results at all.\n\nYou can get the recommended whois.conf at:\nhttps://github.com/zyxrhythm/zyx-tools/tree/master/conf\n"
+exit 1
+fi
+
+if [[ $whoisprog = jwhois && ! -e /etc/whois.conf && ! -d /etc/whois.conf ]]
+then 
+echo -e "\n/etc/jwhois.conf not found!\n\nPlease create a whois.conf\n\nIf you do not create a jwhois.conf,\nthe scipt might produce unwanted results or no results at all.\n\nYou can get the recommended jwhois.conf at:\nhttps://github.com/zyxrhythm/zyx-tools/tree/master/conf\n"
+exit 1
+fi
+
+
+#THE FUN START
 #changes all uppercase letters of the input domain to lowercase.
 domain=$(echo "$1" | awk '{print tolower($0)}' )
 
