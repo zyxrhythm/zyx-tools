@@ -80,6 +80,10 @@ then
 	#the --verbose flag will print the whois server used on the result
 	whoisprog='whois'
 	zyxwhois="whois --verbose"
+	if [[ $wherearewe = Mac ]]
+	then
+		zyxwhois="whois"
+	fi
 else
 	#if jwhois is installed, will use 'whois -n' for whois lookups
 	#the -n flag 'disable features that redirect queries from one server to another'
@@ -98,7 +102,6 @@ then
 echo -e "\n/etc/jwhois.conf not found!\n\nPlease create a jwhois.conf\n\nIf you do not create a jwhois.conf,\nthe scipt might produce unwanted results or no results at all.\n\nYou can get the recommended jwhois.conf at:\nhttps://github.com/zyxrhythm/zyx-tools/tree/master/conf\n"
 exit 1
 fi
-
 
 #THE FUN START
 #changes all uppercase letters of the input domain to lowercase.
