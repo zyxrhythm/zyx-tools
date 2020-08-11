@@ -93,9 +93,9 @@ echo -e "\n/etc/whois.conf not found!\n\nPlease create a whois.conf\n\nIf you do
 exit 1
 fi
 
-if [[ $whoisprog = jwhois && ! -e /etc/whois.conf && ! -d /etc/whois.conf ]]
+if [[ $whoisprog = jwhois && ! -e /etc/jwhois.conf && ! -d /etc/jwhois.conf ]]
 then 
-echo -e "\n/etc/jwhois.conf not found!\n\nPlease create a whois.conf\n\nIf you do not create a jwhois.conf,\nthe scipt might produce unwanted results or no results at all.\n\nYou can get the recommended jwhois.conf at:\nhttps://github.com/zyxrhythm/zyx-tools/tree/master/conf\n"
+echo -e "\n/etc/jwhois.conf not found!\n\nPlease create a jwhois.conf\n\nIf you do not create a jwhois.conf,\nthe scipt might produce unwanted results or no results at all.\n\nYou can get the recommended jwhois.conf at:\nhttps://github.com/zyxrhythm/zyx-tools/tree/master/conf\n"
 exit 1
 fi
 
