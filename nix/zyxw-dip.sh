@@ -171,11 +171,6 @@ else
 	cnc="p"
 	fi
 
-	if (( $(grep -c . <<<"$cnamec") > 1)); then
-    senvar=" also"
-	else
-    senvar=""
-	fi
 
 	#==========================
 	# THE GREAT FUNCTION HALL
