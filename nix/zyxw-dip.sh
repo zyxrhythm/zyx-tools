@@ -599,8 +599,16 @@ else
 	
 	elif [[ $wherearewe = Mac ]]
 	then
-	echo "counter currently does not work on mac"
-	
+	datestr=`printf '%s'  "$1" | awk '$1=$1'`
+	extdate0=${datestr#*e: }
+	extdate1=${extdate0%T*}
+	if [[ ${#extdate1} -gt 10 ]]
+	then
+	extdate1=${extdate0% *}
+	fi
+	extdatex=`printf '%s' $extdate1 | tr -d '\040\011'`
+	daysleft=$((($(date -j -f "%Y-%m-%d" "$extdatex" "+%s")-$(date +%s))/(3600*24)))
+	echo "$daysleft"
 	fi
 	}
 	#=====================
