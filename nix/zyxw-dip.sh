@@ -4,7 +4,7 @@
 #############################################
 
 #ultimate clear screen
-clear && echo -en "\e[3J"
+clear && printf '\e[3J'
 
 if [ "$1" = 'help' ]; then
 echo "
@@ -28,16 +28,13 @@ wherearewe=$(uname -s | tr -d '\012')
 if [[ $wherearewe = Linux ]]
 then
 	wherearewe=Linux
-	whattux=
+	#whattux=
 elif [[ $wherearewe = Darwin ]]
 then 
 	wherearewe=Mac
 else
 	wherearewe=unknown
 fi
-
-#determins what linux
-
 
 #check if which command is installed
 #the script needs the  which  command to detemine if other necessary programs are installed on the host
@@ -144,16 +141,33 @@ else
 			zyxdvc=${zyxdvc1:0:9}
 		fi
 
-		trywis0=$(echo "$zyx0" | grep -F -i -e "[Querying" | sort -u | tr -d '\[\] ' )
+		trywis0=$(echo "$zyx0" | grep -F -i "[Querying" | sort -u | tr -d '\[\] ' )
 		trywis=${trywis0#*Querying}
 
 	elif [[ $whoisprog = 'whois' ]]
 	then
-		zyx0=$($zyxwhois "$domain" 2>&1)
-		zyx=$(echo "$zyx0" | sed -e '1,/Query string:/d' | sed -n '1!p' )
-		trywis0=$(echo "$zyx0" | grep -i -e "Using server" | sort -u )
-		trywisx=${trywis0#*Using server }
-		trywis=${trywisx%?}
+		if [[ $wherearewe = Mac ]]
+		then
+			#zyx0=$($zyxwhois "$domain" 2>&1)
+			
+			#zyx0=$(whois "$domain" 2>&1 | awk '!/^[[:space:]]*$/')
+			
+			#while IFS= read -r -d '' macosx 
+			#do macosarray+=("$macosx")
+			#done < <(awk '/# /,/<<</{ print; if($0~"<<<"){printf "%c",0}}' <<< "$zyx0")
+			IFS=$'\r' read -d'\r' -a  macosarray < <(awk '/# /,/<<</ {if($0 ~ /<<</) printf $0"\r"; else print}' <<< $(whois "$domain" 2>&1) )
+			
+			zyx=${macosarray[0]}
+			trywis0=$(echo "$zyx" | grep "# ")
+			trywis=${trywis0#*# }
+		elif [[ $wherearewe = Linux ]]
+		then
+			zyx0=$($zyxwhois "$domain" 2>&1)
+			zyx=$(echo "$zyx0" | sed -e '1,/Query string:/d' | sed -n '1!p' )
+			trywis0=$(echo "$zyx0" | grep -i "Using server" | sort -u )
+			trywisx=${trywis0#*Using server }
+			trywis=${trywisx%?}
+		fi
 
 	else
 	echo -e "\ncannot identify the whois program installed.\n"
@@ -162,7 +176,7 @@ else
 	fi
 
 	#gets the authoritative name servers from the raw whois lookup data
-	nsxx=$(echo "$zyx" | grep -i -e 'Name server:' )
+	nsxx=$(echo "$zyx" | grep -i 'Name server:' )
 
 	#checks if the domain resolves to an IP address or just a CNAME
 	cnamec=$(dig A +noall +answer "$domain")
@@ -227,10 +241,10 @@ else
    				nsipc1="xd"
    				fi
 
-   			nsa1=$( echo "$nsa0" | grep -i -e "OrgName:" )
+   			nsa1=$( echo "$nsa0" | grep -i "OrgName:" )
 
    				if [[ -z "$nsa1" ]]; then
-                nsa2=$( echo "$nsa0" | grep -i -e "NetName:" )
+                nsa2=$( echo "$nsa0" | grep -i "NetName:" )
    				else
                 nsa2="$nsa1"
    				fi
@@ -253,9 +267,9 @@ else
 
 		else
    		nsa20=$($zyxwhois "$nsr2" )
-   		nsa21=$( echo "$nsa20" | grep -i -e "OrgName:" )
+   		nsa21=$( echo "$nsa20" | grep -i "OrgName:" )
    			if [[ -z "$nsa21" ]]; then
-            nsa22=$( echo "$nsa20" | grep -i -e "NetName:" )
+            nsa22=$( echo "$nsa20" | grep -i "NetName:" )
             else
             nsa22="$nsa21"
    			fi
@@ -359,10 +373,10 @@ else
 			rchk="WTF"
 			fi
 
-		ar1=$( echo "$ar0" | grep -i -e "OrgName:" );
+		ar1=$( echo "$ar0" | grep -i "OrgName:" );
 
 			if [[ -z "$ar1" ]]; then
-            ar2=$( echo "$ar0" | grep -i -e "NetName:" )
+            ar2=$( echo "$ar0" | grep -i "NetName:" )
 			else
             ar2="$ar1"
 			fi
@@ -496,10 +510,10 @@ else
 
 			while IFS= read -r linex; do
 			mxa0=$($zyxwhois "$linex" )
-   			mxa1=$( echo "$mxa0" | grep -i -e "OrgName:" )
+   			mxa1=$( echo "$mxa0" | grep -i "OrgName:" )
 
    				if [[ -z "$mxa1" ]]; then
-   				mxa2=$( echo "$mxa0" | grep -i -e "NetName:" )
+   				mxa2=$( echo "$mxa0" | grep -i "NetName:" )
    				else
    				mxa2="$mxa1"
    				fi
@@ -532,10 +546,10 @@ else
 		else
 
    		mxa20=$($zyxwhois "$mxr2" )
-   		mxa21=$( echo "$mxa20" | grep -i -e "OrgName:" )
+   		mxa21=$( echo "$mxa20" | grep -i "OrgName:" )
 
    			if [[ -z "$mxa21" ]]; then
-   			mxa22=$( echo "$mxa20" | grep -i -e "NetName:" )
+   			mxa22=$( echo "$mxa20" | grep -i "NetName:" )
    			else
    			mxa22="$mxa21"
    			fi
@@ -569,6 +583,8 @@ else
 
 	#This function is responsible for calculating days since regitered, days left on registrar, days left on registry
 	countdfunc () {
+	if [[ $wherearewe = Linux ]]
+	then
 	extdate=$(echo "$1" | grep -o -P '(?<=Date:).*(?=T)' | tr -d '\040\011\012\015' )
 
 	#some registrar does not have the "T" on the expiration date but has a space divide the date and time - thus the above will not be enough
@@ -580,6 +596,12 @@ else
 	fi
 	daysleft=$((($(date +%s --date "$extdatex")-$(date +%s))/(3600*24)))
 	echo "$daysleft"
+	
+	elif [[ $wherearewe = Mac ]]
+	then
+	echo "counter currently does not work on mac"
+	
+	fi
 	}
 	#=====================
 	# END OF FUNCTION HALL
@@ -590,7 +612,7 @@ else
 
 	if [[ $dvc = 'domainno' ]] || [[ $dvc = 'nomatch' ]] || [[ $dvc = 'notfound' ]] || [[ $dvc = 'nodataf' ]] || [[ $dvc = 'nowhois' ]] || [[ $dvc = 'thisdoma' ]] || [[ $dvc = 'nom' ]] || [[ $dvc = 'invalidq' ]] || [[ $dvc = 'whoisloo' ]] || [[ $dvc = 'theregis' ]] || [[ $dvc = 'connect' ]] || [[ $dvc = 'available' ]] || [[ $dvc = ">>>domai" ]] || [[ $dvc = "connect:" ]] || [[ $dvc = 'errorth' ]] || [[ $dvc = 'noinform' ]] || [[ $dvc = 'thequeri' ]]; then
 
-	domhv=$( nslookup "$domain" | grep -e 'NXDomain'  )
+	domhv=$( nslookup "$domain" | grep 'NXDomain'  )
 		if [[ $( echo "${domain#*.}" | grep -o "\." | wc -l) -gt "0" ]] && [[ -z "$domhv" ]]; then
     	domvarx="- ( A sub domain )"
 		else
@@ -615,7 +637,7 @@ else
 		zyx=$(whois "$domain" -h whois.nic.shop 2>&1 )
 		fi
 
-	whoisservergrep=$(echo "$zyx" | grep -i -e "REGISTRAR WHOIS SERVER:" | sort -u )
+	whoisservergrep=$(echo "$zyx" | grep -i "REGISTRAR WHOIS SERVER:" | sort -u )
 
 		if [[ -n "$whoisservergrep" ]]; then
 
@@ -624,19 +646,31 @@ else
 			whoisserver=$(echo "$whoisservergrep" | cut -f2 -d":" | tr -d '\040\011\012\015' )
 
 			elif [[ $whoisprog = 'whois' ]]; then
-
-			whoisserver0=$(echo "$whoisservergrep" | cut -f2 -d":" | tr -d '\040\011\012\015' )
-			whoisserver=${whoisserver0#*Using Server }
+				if [[ $wherearewe = Linux ]]
+				then
+				whoisserver0=$(echo "$whoisservergrep" | cut -f2 -d":" | tr -d '\040\011\012\015' )
+				whoisserver=${whoisserver0#*Using Server }
+				elif [[ $wherearewe = Mac ]]
+				then
+				whoisserver0=$( grep "# " <<< "${macosarray[1]}")
+				whoisserver=${whoisserver0#*# }
+				fi
 
 			else
 			whoisserver=$(echo "$whoisservergrep" | cut -f2 -d":" | tr -d '\040\011\012\015' )
 			fi
-
-		zyx2=$(whois "$domain" -h "$whoisserver" 2>&1 )
+			
+			if [[ $wherearewe = Linux ]]
+			then
+			zyx2=$(whois "$domain" -h "$whoisserver" 2>&1 )
+			elif [[ $wherearewe = Mac ]]
+			then
+			zyx2="${macosarray[1]}"
+			fi 
 		fi
 
 	#REESE
-	rese=$(echo "$zyx2" | grep -i -e "reseller:")
+	rese=$(echo "$zyx2" | grep -i "reseller:")
 	reseller=$( echo "${rese#*:}" | awk '{$2=$2};1')
 
 	resx=$( echo "$reseller" | tr -d '\040\011\012\015' )
@@ -670,18 +704,18 @@ else
 	### CORE ###
 	###########
 	#stores the registrar name on a variable
-	registrar=$(echo "$zyx" | grep -i -e "registrar:" | sort -u )
+	registrar=$(echo "$zyx" | grep -i "registrar:" | sort -u )
 
 	#stores the dsfunction output on a variable
-	dsfrgt=$( dsfunction "$(echo "$zyx" | grep -i -e "status:" )" )
+	dsfrgt=$( dsfunction "$(echo "$zyx" | grep -i "status:" )" )
 
 	#stores the domain's creation date
-	creationdate0=$(echo "$zyx" | grep -i -e "Creation date:")
+	creationdate0=$(echo "$zyx" | grep -i "Creation date:")
 	creationdate1=$( echo "${creationdate0#*:}"| sed 's/T/\ Time: /g' )
 	dayssince0=$( countdfunc "$creationdate0" )
 
 	#stores the domain's expiration date from the registry
-	expdx0=$(echo "$zyx" | grep -i -e "Registry expiry date:")
+	expdx0=$(echo "$zyx" | grep -i "Registry expiry date:")
 	expdx1=$( echo "${expdx0#*:}" | sed 's/T/\ Time: /g' )
 	dayslefttry0=$( countdfunc "$expdx0" )
 
@@ -690,7 +724,7 @@ else
 	expd1="Expiry Date Not Found. Consult the Registrar."
 	daysleftrar0="Counter Error: Whois server Not Found!"
 	else
-	expd0=$(echo "$zyx2" | grep -i -e "Registrar registration expiration date:")
+	expd0=$(echo "$zyx2" | grep -i "Registrar registration expiration date:")
 		if [[ -z "$expd0" ]] || [[ "$expd0" = " " ]]; then
 		expd1="Expiry Date Not Found. Consult the Registrar."
 		daysleftrar0="Counter Error: Date Not Found!"
@@ -871,13 +905,13 @@ else
 
 	registrar=$(echo "$zyx" | grep -i -e "registrar name:" -e "registrar:")
 
-	dsfrctau=$( dsfunction "$(echo "$zyx" | grep -i -e "status:" )" )
+	dsfrctau=$( dsfunction "$(echo "$zyx" | grep -i "status:" )" )
 
-	nsfrctau=$( nsfunction "$(echo "$zyx" | grep -i -e "name server:" )" )
+	nsfrctau=$( nsfunction "$(echo "$zyx" | grep -i "name server:" )" )
 
 	regcontact=$(echo "$zyx" | grep -i -e "Registrant Contact Name:")
 
-	techcontact=$(echo "$zyx" | grep -i -e "Tech Contact Name:")
+	techcontact=$(echo "$zyx" | grep -i "Tech Contact Name:")
 
 	echo -e "\n__________________________\n\nDomain Name: $domain\nRegistrar: ${registrar#*:}\n__________________________\n\nDomain Status:\n\n$dsfrctau\n__________________________\n$nsfrctau\n__________________________\n\n$regcontact\n$techcontact\n__________________________\n\n$arfrctau\n__________________________\n\n$mrfrctau\n__________________________\n"
 
@@ -892,9 +926,9 @@ else
 	arfrctnz=$( arfunction "$(dig +short "$domain" @8.8.8.8 )")
 	mrfrctnz=$( mrfunction "$(dig mx +short "$domain" @8.8.8.8 | sort -n )" 'y' )
 
-	registrar=$(echo "$zyx" | grep -i -e "registrar_name:")
+	registrar=$(echo "$zyx" | grep -i "registrar_name:")
 
-	regcoun=$( echo "$zyx" | grep -i -e "registrar_country:")
+	regcoun=$( echo "$zyx" | grep -i "registrar_country:")
 
 	#stores the domain status
 	dsnzfunc () {
@@ -903,11 +937,11 @@ else
 	echo "${line#*#}"
 	done < <(printf '%s\n' "${dstat#*:}")
 	}
-	dsnzfuncr=$( dsnzfunc "$(echo "$zyx" | grep -i -e "query_status:" )" )
+	dsnzfuncr=$( dsnzfunc "$(echo "$zyx" | grep -i "query_status:" )" )
 
-	lastmod=$(echo "$zyx" | grep -i -e "domain_datelastmodified:")
+	lastmod=$(echo "$zyx" | grep -i "domain_datelastmodified:")
 
-	nameservers=$(echo "$zyx" | grep -i -e "ns_name_.*")
+	nameservers=$(echo "$zyx" | grep -i "ns_name_.*")
 	nsfrctnz=$( nsfunction "$nameservers")
 
 	echo -e "\n__________________________\n\nDomain Name: $domain\nRegistrar: ${registrar#*:}\nRegistrar Country: ${regcoun#*:}\n__________________________\nDomain Status:\n$dsnzfuncr\n--------------------------\nLast Modified: ${lastmod#*:}\n__________________________\n$nsfrctnz\n__________________________\n$arfrctnz\n__________________________\n$mrfrctnz\n__________________________\n"
@@ -978,9 +1012,9 @@ else
 
 	fi
 
-	registrant=$(echo "$zyx2" | grep -i -e "registrant .*:")
-	admin=$(echo "$zyx2" | grep -i -e "admin .*:")
-	tech=$(echo "$zyx2" | grep -i -e "tech .*:")
+	registrant=$(echo "$zyx2" | grep -i "registrant .*:")
+	admin=$(echo "$zyx2" | grep -i "admin .*:")
+	tech=$(echo "$zyx2" | grep -i "tech .*:")
 
 	if [[ -z "$registrant" ]]; then
 	regwis="$(echo "$whoisservergrep" | tr -d '\040\011\012\015')"
