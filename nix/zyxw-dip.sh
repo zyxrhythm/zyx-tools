@@ -88,16 +88,20 @@ else
 	zyxwhois="whois -n"
 fi
 
-if [[ $whoisprog = whois && ! -e /etc/whois.conf && ! -d /etc/whois.conf ]]
-then 
-echo -e "\n/etc/whois.conf not found!\n\nPlease create a whois.conf\n\nIf you do not create a whois.conf,\nthe scipt might produce unwanted results or no results at all.\n\nYou can get the recommended whois.conf at:\nhttps://github.com/zyxrhythm/zyx-tools/tree/master/conf\n"
-exit 1
-fi
+if [[ $wherearewe = Linux ]]
+then
+	if [[ $whoisprog = whois && ! -e /etc/whois.conf && ! -d /etc/whois.conf ]]
+	then 
+	echo -e "\n/etc/whois.conf not found!\n\nPlease create a whois.conf\n\nIf you do not create a whois.conf,\nthe scipt might produce unwanted results or no results at all.\n\nYou can get the recommended whois.conf at:\nhttps://github.com/zyxrhythm/zyx-tools/tree/master/conf\n"
+	exit 1
+	fi
 
-if [[ $whoisprog = jwhois && ! -e /etc/jwhois.conf && ! -d /etc/jwhois.conf ]]
-then 
-echo -e "\n/etc/jwhois.conf not found!\n\nPlease create a jwhois.conf\n\nIf you do not create a jwhois.conf,\nthe scipt might produce unwanted results or no results at all.\n\nYou can get the recommended jwhois.conf at:\nhttps://github.com/zyxrhythm/zyx-tools/tree/master/conf\n"
-exit 1
+	if [[ $whoisprog = jwhois && ! -e /etc/jwhois.conf && ! -d /etc/jwhois.conf ]]
+	then 
+	echo -e "\n/etc/jwhois.conf not found!\n\nPlease create a jwhois.conf\n\nIf you do not create a jwhois.conf,\nthe scipt might produce unwanted results or no results at all.\n\nYou can get the recommended jwhois.conf at:\nhttps://github.com/zyxrhythm/zyx-tools/tree/master/conf\n"
+	exit 1
+	fi
+
 fi
 
 #THE FUN START
