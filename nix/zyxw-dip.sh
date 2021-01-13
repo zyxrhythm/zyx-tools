@@ -968,7 +968,7 @@ else
 	nameservers=$(echo "$zyx" | grep -i "ns_name_.*")
 	nsfrctnz=$( nsfunction "$nameservers")
 
-	echo -e "\n__________________________\n\nDomain Name: $domain\nRegistrar: ${registrar#*:}\nRegistrar Country: ${regcoun#*:}\n__________________________\nDomain Status:\n$dsnzfuncr\n--------------------------\nRegistration Date: $regdate\nCreation Date: $credate\nLast Modified: ${lastmod#*:}\nDelegate Requested: $delreq\nDomain Signed: $domsig\n__________________________\n$nsfrctnz\n__________________________\n$arfrctnz\n__________________________\n$mrfrctnz\n__________________________\n"
+	echo -e "\n__________________________\n\nDomain Name: $domain\nRegistrar: ${registrar#*:}\nRegistrar Country: ${regcoun#*:}\n__________________________\nDomain Status:\n$dsnzfuncr\n--------------------------\nRegistration Date: ${regdate#*:}\nCreation Date: ${credate#*:}\nLast Modified: ${lastmod#*:}\nDelegate Requested: ${delreq#*:}\nDomain Signed: ${domsig#*:}\n__________________________\n$nsfrctnz\n__________________________\n$arfrctnz\n__________________________\n$mrfrctnz\n__________________________\n"
 	;;
 
 	#special whois result trim for UK TLDs
